@@ -6,22 +6,59 @@ const typeDefs = gql`
         login: String!
     }
 
-    type Beer {
-        id: Int!
-        name: String!
-        brand: String
-        price: Float
+    enum AccountTypes {
+        CHECQUE
+        SAVINGS
+    }
+
+    input BusinessRegInfo {
+        name: String!,
+        regNumber: String!, 
+        bizAbbr: String!,
+        cell: String!,
+        address: String!,
+        bizEmail: String!,
+        postalAddr: String!,
+        bankAccName: String!,
+        bankAccNumber: Int!,
+        bankAccType: AccountTypes
+    }
+
+    input ClientRegInfo {
+        name: String!,
+        cell: String!,
+        email: String!,
+        bank: String!,
+        bankAccName: String!,
+        bankAccNumber: Int!,
+        bankAccType: AccountTypes!,
+        biCode: String!
+    }
+
+    input Contract {
+        payMethod: String!,
+        noInstallment: String!,
+        contractNumber: String!,
+        dateOfirstInstallment: String!,
+        installmentAmount: Float!,
+        tracking: String!,
+        installmentDates: String!,
+        collectionReason: String!
     }
 
     type Query {
         current: User
-        beer(id: Int!): Beer
-        beers(brand: String!): [Beer]
+        contract(bizId: Int!): String
+        clients(bizId: String!): String
     }
 
     type Mutation {
-        register(login: String!, password: String!): String
-        login(login: String!, password: String!): String
+        register(username: String!, email: String!, password: String!): String
+        login(username: String!, password: String!): String
+        registerBusiness(regInfo: BusinessRegInfo!):Int
+        createClient(clientDet: ClientRegInfo): String
+        createContract(contractDet: Contract): String
+        registerBiz(bizDet: BusinessRegInfo): String
     }
 `;
 

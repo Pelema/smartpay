@@ -6,7 +6,7 @@ const jsonwebtoken = require("jsonwebtoken");
 
 const resolvers = {
     Query: {
-        async current(_, args, { user }) {
+        async current(_, args, { user, connection }) {
             if (user) {
                 // return await User.findOne({ where: { id: user.id } });
                 return "user"
@@ -51,6 +51,33 @@ const resolvers = {
                 expiresIn: "1d",
             });
         },
+
+        async registerBusiness(_, {}){
+
+        },
+
+        createClient(_, __, { connection }) {
+            connection.query('SELECT * FROM dbo.Users', function (error, results, fields) {
+                if (error) throw error;
+                
+                console.log(results)
+              });
+            clientDet = __.clientDet
+
+            return clientDet.name
+        },
+
+        createContract(_, __) {
+            contractDet = __.contractDet
+
+            return ''
+        },
+
+        registerBiz(_, __) {
+            bitDat = __.bitDat
+
+            return ''
+        }
     },
 };
 

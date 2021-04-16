@@ -1,40 +1,48 @@
-const express = require("express");
-const { ApolloServer } = require("apollo-server-express");
-const jwt = require("express-jwt");
-const typeDefs = require("./schema");
-const resolvers = require("./resolvers");
-// const JWT_SECRET = require("./constants");
+const express = require('express');
+const { ApolloServer } = require('apollo-server-express');
+const jwt = require('express-jwt');
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
+// const JWT_SECRET = require('./constants');
 var mysql      = require('mysql');
 const app = express();
 
 var connection = mysql.createConnection({
-  host     : process.env.RDS_HOSTNAME,
-  user     : process.env.RDS_USERNAME,
-  password : process.env.RDS_PASSWORD,
-  port     : process.env.RDS_PORT
+  host     : 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
+  user     : 'admin',
+  password : 'smart9812',
+  port     : 3306,
+  database : 'smartstore'
 });
  
-connection.connect(function(err) {
-    if (err) {
-      console.error('error connecting: ' + err.stack);
-      return;
-    }
+// var connection = mysql.createConnection({
+//   host     : process.env.RDS_HOSTNAME,
+//   user     : process.env.RDS_USERNAME,
+//   password : process.env.RDS_PASSWORD,
+//   port     : process.env.RDS_PORT
+// });
+
+// connection.connect(function(err) {
+//     if (err) {
+//       console.error('error connecting: ' + err.stack);
+//       return;
+//     }
    
-    console.log('connected as id ' + connection.threadId);
-  });
+//     console.log('connected as id ' + connection.threadId);
+//   });
  
 // connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
 //   if (error) throw error;
 //   console.log('The solution is: ', results[0].solution);
 // });
  
-connection.end();
+// connection.end();
 
 app.use('/', express.static('views'));
 
 
 const auth = jwt({
-    secret: "JWT_SECRET",
+    secret: 'JWT_SECRET',
     algorithms: ['RS256'],
     credentialsRequired: false,
 });
@@ -44,7 +52,7 @@ const server = new ApolloServer({
     typeDefs,
     resolvers,
     playground: {
-        endpoint: "/graphql",
+        endpoint: '/graphql',
     },
     context: ({ req }) => {
         const user = req.headers.user
@@ -52,7 +60,7 @@ const server = new ApolloServer({
             : req.user
             ? req.user
             : null;
-        return { user };
+        return { user, connection };
     },
 });
 
@@ -60,5 +68,5 @@ server.applyMiddleware({ app });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log("The server started on port " + PORT);
+    console.log('The server started on port ' + PORT);
 });
