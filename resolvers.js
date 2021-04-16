@@ -1,5 +1,5 @@
 // const { User } = require("./models");
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
 
 // const JWT_SECRET = require("./constants");
@@ -17,10 +17,11 @@ const resolvers = {
 
     Mutation: {
         async register(_, { login, password }) {
-            const user = await User.create({
-                login,
-                password: await bcrypt.hash(password, 10),
-            });
+            // const user = await User.create({
+            //     login,
+            //     // password: await bcrypt.hash(password, 10),
+            //     password, 
+            // });
 
             return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
                 expiresIn: "3m",
