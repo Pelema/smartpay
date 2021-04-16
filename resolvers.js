@@ -16,69 +16,142 @@ const resolvers = {
     },
 
     Mutation: {
-        async register(_, { login, password }) {
-            // const user = await User.create({
-            //     login,
-            //     // password: await bcrypt.hash(password, 10),
-            //     password, 
-            // });
-
-            return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
-                expiresIn: "3m",
-            });
-        },
-
-        async login(_, { login, password }) {
-            // const user = await User.findOne({ where: { login } });
-            const user = null
-
-            if (!user) {
-                throw new Error(
-                    "This user doesn't exist. Please, make sure to type the right login."
-                );
-            }
-
-            // const valid = await bcrypt.compare(password, user.password);
-
-            // if (!valid) {
-            //     throw new Error("You password is incorrect!");
-            // }
-
-            // return jsonwebtoken.sign({ id: user.id, login: user.login }, JWT_SECRET, {
-            //     expiresIn: "1d",
-            // });
-            return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
-                expiresIn: "1d",
-            });
-        },
-
-        async registerBusiness(_, {}){
-
-        },
-
-        createClient(_, __, { connection }) {
-            connection.query('SELECT * FROM dbo.Users', function (error, results, fields) {
+        register(_, { username, password, email }, { connection }) {
+            var hash = bcrypt.hashSync(password, 12);
+            vals = {username, email, password: hash}
+            return connection.query('INSERT INTO users SET ?', vals,function (error, results) {
                 if (error) throw error;
-                
+
                 console.log(results)
-              });
+
+                return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
+                    expiresIn: "3m",
+                });
+            });
+
+        },
+
+        async login(_, { username, password }) {
+
+            return connection.query('SELECT username, password FROM users WHERE username ==' + username, async (error, results, fields) => {
+                if (error) throw error;
+
+                if (!results) {
+                    throw new Error(
+                        "This user doesn't exist."
+                    )
+                }
+
+                const valid = await bcrypt.compare(password, result.password);
+
+                if (!valid) {
+                    throw new Error("Your password is incorrect!");
+                }
+
+                return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
+                    expiresIn: "1d",
+                });
+            });
+
+        },
+
+        async registerBusiness(_, __, { user, transaction }) {
+            regInfo = __.regInfo
+            bizVals = [[regInfo.name, regInfo.regNumber,
+            regInfo.bizAbbr
+            ]]
+
+            contactVals = [[
+                regInfo.cell,
+                regInfo.bizEmail
+            ]]
+
+            addrVals = [[
+                regInfo.postalAddr, regInfo.address,
+            ]]
+
+            accVals = [[
+                businessID, regInfo.bankAccName, regInfo.bankAccType, regInfo.bankAccNumber
+            ]]
+
+                .query('INSERT INTO business_contact_details(cellphoneNo, email, businessID)  VALUES ?', contactVals, function (error, results) {
+
+                })
+
+                .query('INSERT INTO address(location, postalAddress, businessID)  VALUES ?', addrVals, function (error, results) {
+
+                })
+
+                .query('INSERT INTO business_account_info(bankID, businessID, accountName, bankAccType, accountNo)  VALUES ?', accVals, function (error, results) {
+
+                });
+
+            transactions.query('INSERT INTO business_account(userID, businessName, businessRegistrationNumber, abbreviatedBusinessName)  VALUES ?', regInfo, function (error, results) {
+
+                if (err) {
+                    transactions.rollback();
+                    return console.log('Rolled back.');
+                }
+
+
+                return transactions.commit(function (err, result) {
+                    return console.log('Committed.');
+                });
+
+            });
+        },
+
+        async createClient(_, __, { user, transaction }) {
             clientDet = __.clientDet
 
-            return clientDet.name
+            //client general details
+            detVals = [[clientDet.name]]
+
+            //client account contact details
+            accVals = [[clientDet.bank, clientDet.bankAccName, clientDet.bankAccNumber, clientDet.bankAccType, clientDet.biCode]]
+
+            //client contact details
+            contactVals = [[clientDet.cell, clientDet.email]]
+
+            
+
+            transactions.query('INSERT INTO client_details(clientFullname, businessID)  VALUES ?', function (err, result) {
+
+            })
+            .query('INSERT INTO client_account_info(clientID, accountName, bankAccType, accountNo, biCode)  VALUES ?', function (err, result) {
+
+            })
+            .query('INSERT INTO client_contact_details(clientID, email, cellphoneNo )  VALUES ?', function (err, result) {
+
+                if (err) {
+                    transactions.rollback();
+                    return console.log('Rolled back.');
+                }
+
+
+                transactions.commit(function (err, result) {
+                    console.log('Committed.');
+                });
+
+            });
         },
 
-        createContract(_, __) {
+        async createContract(_, __, { user, connection }) {
             contractDet = __.contractDet
+            contractVals = [[payMethod, noInstallment, 
+                            installmentAmount, installmentDates,
+                            dateOfirstInstallment, tracking,
+                            collectionReason
+                        ]]
 
-            return ''
+            await connection.query('INSERT INTO users(clientID, noInstallment, paymentMethod, installmentAmount, installmentDates, dateOfirstInstallment, tracking, collectionReason ) VALUES?', contactVals, function (error, results, fields) {
+                if (error) throw error;
+
+                console.log(results)
+            });
         },
 
-        registerBiz(_, __) {
-            bitDat = __.bitDat
-
-            return ''
-        }
-    },
-};
+    }
+}
 
 module.exports = resolvers;

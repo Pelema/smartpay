@@ -4,17 +4,25 @@ const jwt = require('express-jwt');
 const typeDefs = require('./schema');
 const resolvers = require('./resolvers');
 // const JWT_SECRET = require('./constants');
-var mysql      = require('mysql');
+var mysql = require('mysql');
 const app = express();
 
-var connection = mysql.createConnection({
-  host     : 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
-  user     : 'admin',
-  password : 'smart9812',
-  port     : 3306,
-  database : 'smartstore'
+var transaction = require('mysql-transactions')({
+    host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
+    user: 'admin',
+    password: 'smart9812',
+    port: 3306,
+    database: 'smartstore'
 });
- 
+
+var connection = mysql.createConnection({
+    host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
+    user: 'admin',
+    password: 'smart9812',
+    port: 3306,
+    database: 'smartstore'
+});
+
 // var connection = mysql.createConnection({
 //   host     : process.env.RDS_HOSTNAME,
 //   user     : process.env.RDS_USERNAME,
@@ -27,15 +35,15 @@ var connection = mysql.createConnection({
 //       console.error('error connecting: ' + err.stack);
 //       return;
 //     }
-   
+
 //     console.log('connected as id ' + connection.threadId);
 //   });
- 
+
 // connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
 //   if (error) throw error;
 //   console.log('The solution is: ', results[0].solution);
 // });
- 
+
 // connection.end();
 
 app.use('/', express.static('views'));
@@ -58,9 +66,9 @@ const server = new ApolloServer({
         const user = req.headers.user
             ? JSON.parse(req.headers.user)
             : req.user
-            ? req.user
-            : null;
-        return { user, connection };
+                ? req.user
+                : null;
+        return { user, connection, transaction };
     },
 });
 
