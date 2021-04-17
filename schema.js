@@ -21,7 +21,7 @@ const typeDefs = gql`
         postalAddr: String!,
         bankAccName: String!,
         bankAccNumber: Int!,
-        bankAccType: AccountTypes
+        bankAccType: AccountTypes!
     }
 
     input ClientRegInfo {
@@ -54,10 +54,9 @@ const typeDefs = gql`
     type Mutation {
         register(username: String!, email: String!, password: String!): String
         login(username: String!, password: String!): String
-        registerBusiness(regInfo: BusinessRegInfo!):Int
-        createClient(clientDet: ClientRegInfo): String
-        createContract(contractDet: Contract): String
-        registerBiz(bizDet: BusinessRegInfo): String
+        registerBusiness(regInfo: BusinessRegInfo!):String
+        createClient(clientDet: ClientRegInfo!): String
+        createContract(contractDet: Contract!): String
     }
 `;
 
