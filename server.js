@@ -4,10 +4,10 @@ const jwt = require('express-jwt');
 const typeDefs = require('./schema');
 const resolvers = require('./resolvers');
 // const JWT_SECRET = require('./constants');
-var mysql = require('mysql');
+var mysql = require('promise-mysql');
 const app = express();
 
-var transaction = require('mysql-transactions')({
+var connection =  mysql.createConnection({
     host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
     user: 'admin',
     password: 'smart9812',
@@ -15,13 +15,6 @@ var transaction = require('mysql-transactions')({
     database: 'smartstore'
 });
 
-var connection = mysql.createConnection({
-    host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
-    user: 'admin',
-    password: 'smart9812',
-    port: 3306,
-    database: 'smartstore'
-});
 
 // var connection = mysql.createConnection({
 //   host     : process.env.RDS_HOSTNAME,
@@ -68,7 +61,7 @@ const server = new ApolloServer({
             : req.user
                 ? req.user
                 : null;
-        return { user, connection, transaction };
+        return { user, connection };
     },
 });
 
