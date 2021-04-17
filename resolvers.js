@@ -18,44 +18,47 @@ const resolvers = {
     Mutation: {
         register(_, { username, password, email }, { connection }) {
             var hash = bcrypt.hashSync(password, 12);
-            vals = {username, email, password: hash}
-            return connection.query('INSERT INTO users SET ?', vals,function (error, results) {
-                if (error) throw error;
+            vals = { username, email, password: hash, roleID: 2 }
 
-                console.log(results)
-
-                return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
-                    expiresIn: "3m",
-                });
-            });
-
-        },
-
-        async login(_, { username, password }) {
-
-            return connection.query('SELECT username, password FROM users WHERE username ==' + username, async (error, results, fields) => {
-                if (error) throw error;
-
-                if (!results) {
-                    throw new Error(
-                        "This user doesn't exist."
-                    )
-                }
-
-                const valid = await bcrypt.compare(password, result.password);
-
-                if (!valid) {
-                    throw new Error("Your password is incorrect!");
-                }
-
-                return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
+            return connection.then(conn => {
+                return conn.query('INSERT INTO users SET ?', vals)
+            }).then(result => {
+                return jsonwebtoken.sign({ id: result.insertId, username }, "JWT_SECRET", {
                     expiresIn: "1d",
-                });
-            });
-
+                })
+            }).catch(error => {
+                throw error
+            })
         },
 
-        async registerBusiness(_, __, { user, transaction }) {
+        login(_, { username, password }, { connection }) {
+            return connection.then(conn => {
+                return conn.query('SELECT username, password FROM users WHERE username=?', [username])
+                    .then((res) => {
+                        if (!res.length) {
+                            throw new Error(
+                                "This user doesn't exist."
+                            )
+                        }
+                        return res[0]
+                    })
+                    .then(res => bcrypt.compare(password, res.password))
+                    .then(res => {
+                        if (!res) {
+                            throw new Error("Your password is incorrect!");
+                        }
+
+                        return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
+                            expiresIn: "1d",
+                        })
+                    })
+                    .catch(err => {
+                        throw err
+                    })
+            })
+        },
+
+        registerBusiness(_, __, { user, connection }) {
             regInfo = __.regInfo
             bizVals = [[regInfo.name, regInfo.regNumber,
             regInfo.bizAbbr
@@ -74,6 +77,30 @@ const resolvers = {
                 businessID, regInfo.bankAccName, regInfo.bankAccType, regInfo.bankAccNumber
             ]]
 
+            trans
+            connection.then(conn => {
+                trans = conn
+                return conn.beginTransaction()
+            })
+                .then(() => {
+                    trans.query('INSERT INTO posts SET title=?', title)
+                })
+                .then(() => {
+                    trans.query('INSERT INTO posts SET title=?', title)
+                })
+                .then(() => {
+                    trans.query('INSERT INTO posts SET title=?', title)
+                })
+                .then(() => {
+                    trans.commit()
+                })
+                .catch(error => {
+                    if (trans) {
+                        trans.rollback()
+                    }
+                    throw error
+                })
+
                 .query('INSERT INTO business_contact_details(cellphoneNo, email, businessID)  VALUES ?', contactVals, function (error, results) {
 
                 })
@@ -86,22 +113,46 @@ const resolvers = {
 
                 });
 
-            transactions.query('INSERT INTO business_account(userID, businessName, businessRegistrationNumber, abbreviatedBusinessName)  VALUES ?', regInfo, function (error, results) {
+            connection.query('INSERT INTO business_account(userID, businessName, businessRegistrationNumber, abbreviatedBusinessName)  VALUES ?', regInfo, function (error, results) {
 
                 if (err) {
-                    transactions.rollback();
+                    connection.rollback();
                     return console.log('Rolled back.');
                 }
 
 
-                return transactions.commit(function (err, result) {
+                return connection.commit(function (err, result) {
                     return console.log('Committed.');
                 });
 
             });
         },
 
-        async createClient(_, __, { user, transaction }) {
+        createClient(_, __, { user, connection }) {
+            trans
+            connection.then(conn => {
+                trans = conn
+                return conn.beginTransaction()
+            })
+                .then(() => {
+                    trans.query('INSERT INTO posts SET title=?', title)
+                })
+                .then(() => {
+                    trans.query('INSERT INTO posts SET title=?', title)
+                })
+                .then(() => {
+                    trans.query('INSERT INTO posts SET title=?', title)
+                })
+                .then(() => {
+                    trans.commit()
+                })
+                .catch(error => {
+                    if (trans) {
+                        trans.rollback()
+                    }
+                    throw error
+                })
+
             clientDet = __.clientDet
 
             //client general details
@@ -113,42 +164,35 @@ const resolvers = {
             //client contact details
             contactVals = [[clientDet.cell, clientDet.email]]
 
-            
 
-            transactions.query('INSERT INTO client_details(clientFullname, businessID)  VALUES ?', function (err, result) {
 
-            })
-            .query('INSERT INTO client_account_info(clientID, accountName, bankAccType, accountNo, biCode)  VALUES ?', function (err, result) {
+            connection.query('INSERT INTO client_details(clientFullname, businessID)  VALUES ?', function (err, result) {
 
             })
-            .query('INSERT INTO client_contact_details(clientID, email, cellphoneNo )  VALUES ?', function (err, result) {
+                .query('INSERT INTO client_account_info(clientID, accountName, bankAccType, accountNo, biCode)  VALUES ?', function (err, result) {
 
-                if (err) {
-                    transactions.rollback();
-                    return console.log('Rolled back.');
-                }
+                })
+                .query('INSERT INTO client_contact_details(clientID, email, cellphoneNo )  VALUES ?', function (err, result) {
+
+                    if (err) {
+                        connection.rollback();
+                        return console.log('Rolled back.');
+                    }
 
 
-                transactions.commit(function (err, result) {
-                    console.log('Committed.');
+                    connection.commit(function (err, result) {
+                        console.log('Committed.');
+                    });
+
                 });
-
-            });
         },
 
-        async createContract(_, __, { user, connection }) {
-            contractDet = __.contractDet
-            contractVals = [[payMethod, noInstallment, 
-                            installmentAmount, installmentDates,
-                            dateOfirstInstallment, tracking,
-                            collectionReason
-                        ]]
+        createContract(_, __, { user, connection }) {
+            const contractVals = __.contractDet
 
-            await connection.query('INSERT INTO users(clientID, noInstallment, paymentMethod, installmentAmount, installmentDates, dateOfirstInstallment, tracking, collectionReason ) VALUES?', contactVals, function (error, results, fields) {
-                if (error) throw error;
-
-                console.log(results)
-            });
+            return connection.then(conn => {
+                return conn.query('INSERT INTO users SET ?', { ...contractVals })
+            }).catch(error => { throw error })
         },
 
     }
