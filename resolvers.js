@@ -60,131 +60,107 @@ const resolvers = {
 
         registerBusiness(_, __, { user, connection }) {
             regInfo = __.regInfo
-            bizVals = [[regInfo.name, regInfo.regNumber,
-            regInfo.bizAbbr
-            ]]
 
-            contactVals = [[
-                regInfo.cell,
-                regInfo.bizEmail
-            ]]
+            bizVals = {
+                userID: 1,
+                businessName: regInfo.name,
+                businessRegistrationNumber: regInfo.regNumber,
+                abbreviatedBusinessName: regInfo.bizAbbr
+            }
 
-            addrVals = [[
-                regInfo.postalAddr, regInfo.address,
-            ]]
+            contactVals = {
+                businessID: null,
+                cellphoneNo: regInfo.cell,
+                email: regInfo.bizEmail,
+            }
 
-            accVals = [[
-                businessID, regInfo.bankAccName, regInfo.bankAccType, regInfo.bankAccNumber
-            ]]
+            addrVals = {
+                location: regInfo.address,
+                postalAddress: regInfo.postalAddr,
+                businessID: null
+            }
 
-            trans
-            connection.then(conn => {
+            accVals = {
+                bankID: 1,
+                businessID: null,
+                accountName: regInfo.bankAccName,
+                bankAccType: regInfo.bankAccType,
+                accountNo: regInfo.bankAccNumber
+            }
+
+            var trans
+            return connection.then(conn => {
                 trans = conn
                 return conn.beginTransaction()
-            })
-                .then(() => {
-                    trans.query('INSERT INTO posts SET title=?', title)
-                })
-                .then(() => {
-                    trans.query('INSERT INTO posts SET title=?', title)
-                })
-                .then(() => {
-                    trans.query('INSERT INTO posts SET title=?', title)
-                })
-                .then(() => {
-                    trans.commit()
-                })
-                .catch(error => {
-                    if (trans) {
-                        trans.rollback()
-                    }
-                    throw error
-                })
-
-                .query('INSERT INTO business_contact_details(cellphoneNo, email, businessID)  VALUES ?', contactVals, function (error, results) {
-
-                })
-
-                .query('INSERT INTO address(location, postalAddress, businessID)  VALUES ?', addrVals, function (error, results) {
-
-                })
-
-                .query('INSERT INTO business_account_info(bankID, businessID, accountName, bankAccType, accountNo)  VALUES ?', accVals, function (error, results) {
-
-                });
-
-            connection.query('INSERT INTO business_account(userID, businessName, businessRegistrationNumber, abbreviatedBusinessName)  VALUES ?', regInfo, function (error, results) {
-
-                if (err) {
-                    connection.rollback();
-                    return console.log('Rolled back.');
+            }).then(() => {
+                return trans.query('INSERT INTO business_account SET?', [bizVals])
+            }).then((result) => {
+                contactVals.businessID = result.insertId, 
+                addrVals.businessID = result.insertId 
+                accVals.businessID  = result.insertId
+                return trans.query('INSERT INTO business_contact_details SET?', [contactVals])
+            }).then(() => {
+                return trans.query('INSERT INTO address SET?', [addrVals])
+            }).then(() => {
+                return trans.query('INSERT INTO business_account_info SET?', [accVals])
+            }).then(() => {
+                return trans.commit()
+            }).then(() => {
+                return 'Business registration successful'
+            }).catch(error => {
+                if (trans) {
+                    trans.rollback()
                 }
-
-
-                return connection.commit(function (err, result) {
-                    return console.log('Committed.');
-                });
-
-            });
+                throw error
+            })
         },
 
         createClient(_, __, { user, connection }) {
             trans
-            connection.then(conn => {
-                trans = conn
-                return conn.beginTransaction()
-            })
-                .then(() => {
-                    trans.query('INSERT INTO posts SET title=?', title)
-                })
-                .then(() => {
-                    trans.query('INSERT INTO posts SET title=?', title)
-                })
-                .then(() => {
-                    trans.query('INSERT INTO posts SET title=?', title)
-                })
-                .then(() => {
-                    trans.commit()
-                })
-                .catch(error => {
-                    if (trans) {
-                        trans.rollback()
-                    }
-                    throw error
-                })
-
             clientDet = __.clientDet
 
             //client general details
-            detVals = [[clientDet.name]]
+            detVals = {
+                clientFullname: clientDet.name,
+                businessID = null
+            }
 
             //client account contact details
-            accVals = [[clientDet.bank, clientDet.bankAccName, clientDet.bankAccNumber, clientDet.bankAccType, clientDet.biCode]]
+            accVals = {
+                clientID = null,
+                accountName: clientDet.bankAccName,
+                bankAccType: clientDet.bankAccType,
+                accountNo: clientDet.bankAccNumber,
+                biCode: clientDet.biCode,
+                bankID: clientDet.bank
+            }
 
             //client contact details
-            contactVals = [[clientDet.cell, clientDet.email]]
+            contactVals = {
+                clientID = null,
+                email: clientDet.email,
+                cellphoneNo: clientDet.cell
+            }
 
-
-
-            connection.query('INSERT INTO client_details(clientFullname, businessID)  VALUES ?', function (err, result) {
-
+            connection.then(conn => {
+                trans = conn
+                return conn.beginTransaction()
+            }).then(() => {
+                return trans.query('INSERT INTO client_details SET?', [detVals])
+            }).then(() => {
+                return trans.query('INSERT INTO client_account_info SET?', [accVals])
+            }).then(() => {
+                return trans.query('INSERT INTO client_contact_details SET?', [contactVals])
+            }).then(() => {
+                return trans.commit()
+            }).then(() => {
+                return ''
+            }).catch(error => {
+                if (trans) {
+                    trans.rollback()
+                }
+                throw error
             })
-                .query('INSERT INTO client_account_info(clientID, accountName, bankAccType, accountNo, biCode)  VALUES ?', function (err, result) {
-
-                })
-                .query('INSERT INTO client_contact_details(clientID, email, cellphoneNo )  VALUES ?', function (err, result) {
-
-                    if (err) {
-                        connection.rollback();
-                        return console.log('Rolled back.');
-                    }
-
-
-                    connection.commit(function (err, result) {
-                        console.log('Committed.');
-                    });
-
-                });
         },
 
         createContract(_, __, { user, connection }) {
