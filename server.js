@@ -67,9 +67,8 @@ app.get('/genCSV', function (req, res) {
 
         return csvWriter.writeRecords(jsonData)
 
-    }).then((res) => {
-        console.log(res, ' this ')
-        return res.send({data : 'hh hello world '})
+    }).then((result) => {
+        return res.download('./csvWriter.csv')
     }).catch(error => {
         return res.status(500).send({ error: error})
     })
