@@ -122,12 +122,12 @@ const resolvers = {
             //client general details
             detVals = {
                 clientFullname: clientDet.name,
-                businessID = null
+                businessID : null
             }
 
             //client account contact details
             accVals = {
-                clientID = null,
+                clientID : null,
                 accountName: clientDet.bankAccName,
                 bankAccType: clientDet.bankAccType,
                 accountNo: clientDet.bankAccNumber,
@@ -137,7 +137,7 @@ const resolvers = {
 
             //client contact details
             contactVals = {
-                clientID = null,
+                clientID : null,
                 email: clientDet.email,
                 cellphoneNo: clientDet.cell
             }

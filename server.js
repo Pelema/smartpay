@@ -5,9 +5,11 @@ const typeDefs = require('./schema');
 const resolvers = require('./resolvers');
 // const JWT_SECRET = require('./constants');
 var mysql = require('promise-mysql');
+const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+
 const app = express();
 
-var connection =  mysql.createConnection({
+var connection = mysql.createConnection({
     host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
     user: 'admin',
     password: 'smart9812',
@@ -40,6 +42,38 @@ var connection =  mysql.createConnection({
 // connection.end();
 
 app.use('/', express.static('views'));
+
+app.get('/genCSV', function (req, res) {
+    return connection.then((conn) => {
+        return conn.query("SELECT * FROM recipients")
+    }).then((data) => {
+        const jsonData = JSON.parse(JSON.stringify(data));
+        console.log("jsonData", jsonData);
+
+        const csvWriter = createCsvWriter({
+            path: "csvWriter.csv",
+            header: [
+                { id: 'recipientName', title: 'recipientName'},
+                { id: 'recipientAccount', title: 'recipientAccount'},
+                { id: 'recipientAccType', title: 'recipientAccType'},
+                { id: 'biCode', title: 'biCode'},
+                { id: 'amount', title: 'amount'},
+                { id: 'contractReference', title: 'contractReference'},
+                { id: 'tracking', title: 'tracking'},
+                { id: 'abbreviatedName', title: 'abbreviatedName'},
+                { id: 'reasonForCollection', title: 'reasonForCollection'}
+            ]
+        })
+
+        return csvWriter.writeRecords(jsonData)
+
+    }).then((res) => {
+        console.log(res, ' this ')
+        return res.send({data : 'hh hello world '})
+    }).catch(error => {
+        return res.status(500).send({ error: error})
+    })
+})
 
 
 const auth = jwt({
