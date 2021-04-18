@@ -6,8 +6,10 @@ const resolvers = require('./resolvers');
 // const JWT_SECRET = require('./constants');
 var mysql = require('promise-mysql');
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+var cors = require('cors')
 
 const app = express();
+app.use(cors())
 
 var connection = mysql.createConnection({
     host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
