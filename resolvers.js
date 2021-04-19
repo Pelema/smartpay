@@ -164,7 +164,7 @@ const resolvers = {
         },
 
         createContract(_, contractVals, { user, connection }) {
-            console.log(contractVals)
+
             return connection.then(conn => {
                 return conn.query('INSERT INTO contract_details SET ?', { ...contractVals })
             }).then(()=>{
