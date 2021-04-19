@@ -21,12 +21,23 @@ var connection = mysql.createConnection({
 
 app.use('/', express.static('dist'));
 
+app.get('/header', (req, res)=>{
+    // req.headers.authorization = 'some value';
+    console.log(req.headers)
+    res.send(req.headers.authorization)
+})
+
+app.get('/header2', (req, res)=>{
+    req.headers.authorization = 'some value';
+    console.log(req.headers)
+    res.send(req.headers.authorization)
+})
+
 app.get('/genCSV', function (req, res) {
     return connection.then((conn) => {
         return conn.query("SELECT * FROM recipients")
     }).then((data) => {
         const jsonData = JSON.parse(JSON.stringify(data));
-        console.log("jsonData", jsonData);
 
         const csvWriter = createCsvWriter({
             path: "csvWriter.csv",
@@ -58,6 +69,7 @@ const auth = jwt({
     algorithms: ['RS256'],
     credentialsRequired: false,
 });
+
 app.use(auth);
 
 const server = new ApolloServer({

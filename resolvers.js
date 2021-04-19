@@ -32,29 +32,29 @@ const resolvers = {
         },
 
         login(_, { username, password }, { connection }) {
+            console.log('here')
             return connection.then(conn => {
                 return conn.query('SELECT username, password FROM users WHERE username=?', [username])
-                    .then((res) => {
-                        if (!res.length) {
-                            throw new Error(
-                                "This user doesn't exist."
-                            )
-                        }
-                        return res[0]
-                    })
-                    .then(res => bcrypt.compare(password, res.password))
-                    .then(res => {
-                        if (!res) {
-                            throw new Error("Your password is incorrect!");
-                        }
-
-                        return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
-                            expiresIn: "1d",
-                        })
-                    })
-                    .catch(err => {
-                        throw err
-                    })
+            }).then((res) => {
+                console.log('does')
+                if (!res.length) {
+                    throw new Error(
+                        "This user doesn't exist."
+                    )
+                }
+                console.log('is')
+                return res[0]
+            })
+            .then(res => bcrypt.compare(password, res.password))
+            .then(res => {
+                if (!res) {
+                    throw new Error("Your password is incorrect!");
+                }
+                return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
+                    expiresIn: "1d",
+                })
+            }).catch(err => {
+                throw err
             })
         },
 
