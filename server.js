@@ -19,31 +19,7 @@ var connection = mysql.createConnection({
     database: 'smartstore'
 });
 
-
-// var connection = mysql.createConnection({
-//   host     : process.env.RDS_HOSTNAME,
-//   user     : process.env.RDS_USERNAME,
-//   password : process.env.RDS_PASSWORD,
-//   port     : process.env.RDS_PORT
-// });
-
-// connection.connect(function(err) {
-//     if (err) {
-//       console.error('error connecting: ' + err.stack);
-//       return;
-//     }
-
-//     console.log('connected as id ' + connection.threadId);
-//   });
-
-// connection.query('SELECT 1 + 1 AS solution', function (error, results, fields) {
-//   if (error) throw error;
-//   console.log('The solution is: ', results[0].solution);
-// });
-
-// connection.end();
-
-app.use('/', express.static('views'));
+app.use('/', express.static('dist'));
 
 app.get('/genCSV', function (req, res) {
     return connection.then((conn) => {
