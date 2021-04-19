@@ -114,14 +114,13 @@ const resolvers = {
             })
         },
 
-        createClient(_, __, { user, connection }) {
-            trans
-            clientDet = __.clientDet
+        createClient(_, clientDet, { user, connection }) {
+            var trans
 
             //client general details
             detVals = {
                 clientFullname: clientDet.name,
-                businessID : null
+                businessID : 1
             }
 
             //client account contact details
@@ -141,12 +140,14 @@ const resolvers = {
                 cellphoneNo: clientDet.cell
             }
 
-            connection.then(conn => {
+            return connection.then(conn => {
                 trans = conn
                 return conn.beginTransaction()
             }).then(() => {
                 return trans.query('INSERT INTO client_details SET?', [detVals])
-            }).then(() => {
+            }).then((result) => {
+                contactVals.clientID = result.insertId
+                accVals.clientID = result.insertId
                 return trans.query('INSERT INTO client_account_info SET?', [accVals])
             }).then(() => {
                 return trans.query('INSERT INTO client_contact_details SET?', [contactVals])
@@ -162,11 +163,12 @@ const resolvers = {
             })
         },
 
-        createContract(_, __, { user, connection }) {
-            const contractVals = __.contractDet
-
+        createContract(_, contractVals, { user, connection }) {
+            console.log(contractVals)
             return connection.then(conn => {
-                return conn.query('INSERT INTO users SET ?', { ...contractVals })
+                return conn.query('INSERT INTO contract_details SET ?', { ...contractVals })
+            }).then(()=>{
+                return 'Contract created'
             }).catch(error => { throw error })
         },
 
