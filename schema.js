@@ -11,17 +11,9 @@ const typeDefs = gql`
         SAVINGS
     }
 
-    input BusinessRegInfo {
-        name: String!,
-        regNumber: String!, 
-        bizAbbr: String!,
-        cell: String!,
-        address: String!,
-        bizEmail: String!,
-        postalAddr: String!,
-        bankAccName: String!,
-        bankAccNumber: Int!,
-        bankAccType: AccountTypes!
+    enum PaymentTypes {
+        ENDO
+        CARD
     }
 
     input ClientRegInfo {
@@ -36,7 +28,7 @@ const typeDefs = gql`
     }
 
     input Contract {
-        payMethod: String!,
+        payMethod: PaymentTypes!,
         noInstallment: String!,
         dateOfirstInstallment: String!,
         installmentAmount: Float!,
@@ -54,7 +46,19 @@ const typeDefs = gql`
     type Mutation {
         register(username: String!, email: String!, password: String!): String
         login(username: String!, password: String!): String
-        registerBusiness(regInfo: BusinessRegInfo!):String
+        registerBusiness(
+            name: String!,
+            regNumber: String!, 
+            bizAbbr: String!,
+            cell: String!,
+            address: String!,
+            bizEmail: String!,
+            postalAddr: String!,
+            bankAccName: String!,
+            bankAccNumber: Int!,
+            bankAccType: AccountTypes!,
+            branchCode: String!
+        ):String
         createClient(clientDet: ClientRegInfo!): String
         createContract(contractDet: Contract!): String
     }

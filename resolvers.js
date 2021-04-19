@@ -58,8 +58,7 @@ const resolvers = {
             })
         },
 
-        registerBusiness(_, __, { user, connection }) {
-            regInfo = __.regInfo
+        registerBusiness(_, regInfo, { user, connection }) {
 
             bizVals = {
                 userID: 1,
