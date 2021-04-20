@@ -6,6 +6,11 @@ const typeDefs = gql`
         login: String!
     }
 
+    type Client {
+        id: String!,
+        name: String!
+    }
+
     enum AccountTypes {
         CHECQUE
         SAVINGS
@@ -19,7 +24,7 @@ const typeDefs = gql`
     type Query {
         current: User
         contract(bizId: Int!): String
-        clients(bizId: String!): String
+        businessClients: [Client]
     }
 
     type Mutation {

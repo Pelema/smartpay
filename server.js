@@ -21,18 +21,6 @@ var connection = mysql.createConnection({
 
 app.use('/', express.static('dist'));
 
-app.get('/header', (req, res)=>{
-    // req.headers.authorization = 'some value';
-    console.log(req.headers)
-    res.send(req.headers.authorization)
-})
-
-app.get('/header2', (req, res)=>{
-    req.headers.authorization = 'some value';
-    console.log(req.headers)
-    res.send(req.headers.authorization)
-})
-
 app.get('/genCSV', function (req, res) {
     return connection.then((conn) => {
         return conn.query("SELECT * FROM recipients")
@@ -66,7 +54,7 @@ app.get('/genCSV', function (req, res) {
 
 const auth = jwt({
     secret: 'JWT_SECRET',
-    algorithms: ['RS256'],
+    algorithms: ['sha1', 'RS256', 'HS256'],
     credentialsRequired: false,
 });
 

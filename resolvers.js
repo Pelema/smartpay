@@ -6,12 +6,20 @@ const jsonwebtoken = require("jsonwebtoken");
 
 const resolvers = {
     Query: {
-        async current(_, args, { user, connection }) {
-            if (user) {
-                // return await User.findOne({ where: { id: user.id } });
-                return "user"
-            }
-            throw new Error("Sorry, you're not an authenticated user!");
+        businessClients(_, {},{ connection, user }) {
+            return connection.then(conn => {
+                return conn.query('SELECT * FROM client_details WHERE businessID =?', [user.businessID])
+            }).then(result => {
+                var list = []
+                result.forEach(el => {
+                    list.push({name: el.clientFullname, id: el.client_id})
+                })
+
+                return list
+            }).catch(error => {
+                throw error
+            })
+            
         }
     },
 
@@ -23,7 +31,7 @@ const resolvers = {
             return connection.then(conn => {
                 return conn.query('INSERT INTO users SET ?', vals)
             }).then(result => {
-                return jsonwebtoken.sign({ id: result.insertId, username }, "JWT_SECRET", {
+                return jsonwebtoken.sign({ userID: result.insertId }, "JWT_SECRET", {
                     expiresIn: "1d",
                 })
             }).catch(error => {
@@ -31,26 +39,27 @@ const resolvers = {
             })
         },
 
-        login(_, { username, password }, { connection }) {
-            console.log('here')
+        login(_, { username, password }, { connection, user }) {
+            var uID 
             return connection.then(conn => {
-                return conn.query('SELECT username, password FROM users WHERE username=?', [username])
+                return conn.query('SELECT userID, username, password FROM users WHERE username=?', [username])
             }).then((res) => {
-                console.log('does')
                 if (!res.length) {
                     throw new Error(
                         "This user doesn't exist."
                     )
                 }
-                console.log('is')
                 return res[0]
             })
-            .then(res => bcrypt.compare(password, res.password))
+            .then(res => {
+                uID = res.userID
+                return bcrypt.compare(password, res.password)
+            })
             .then(res => {
                 if (!res) {
                     throw new Error("Your password is incorrect!");
                 }
-                return jsonwebtoken.sign({ id: "user.id", login: "user.login" }, "JWT_SECRET", {
+                return jsonwebtoken.sign({ userID: uID }, "JWT_SECRET", {
                     expiresIn: "1d",
                 })
             }).catch(err => {
@@ -59,9 +68,8 @@ const resolvers = {
         },
 
         registerBusiness(_, regInfo, { user, connection }) {
-
             bizVals = {
-                userID: 1,
+                userID: user.userID,
                 businessName: regInfo.name,
                 businessRegistrationNumber: regInfo.regNumber,
                 abbreviatedBusinessName: regInfo.bizAbbr
@@ -94,7 +102,7 @@ const resolvers = {
             }).then(() => {
                 return trans.query('INSERT INTO business_account SET?', [bizVals])
             }).then((result) => {
-                contactVals.businessID = result.insertId, 
+                contactVals.businessID = result.insertId
                 addrVals.businessID = result.insertId 
                 accVals.businessID  = result.insertId
                 return trans.query('INSERT INTO business_contact_details SET?', [contactVals])
@@ -105,8 +113,11 @@ const resolvers = {
             }).then(() => {
                 return trans.commit()
             }).then(() => {
-                return 'Business registration successful'
+                return jsonwebtoken.sign({ userID: user.userID, businessID: contactVals.businessID }, "JWT_SECRET", {
+                    expiresIn: "1d",
+                })
             }).catch(error => {
+                console.log(error, 'err')
                 if (trans) {
                     trans.rollback()
                 }
@@ -120,7 +131,7 @@ const resolvers = {
             //client general details
             detVals = {
                 clientFullname: clientDet.name,
-                businessID : 1
+                businessID : user.businessID
             }
 
             //client account contact details
