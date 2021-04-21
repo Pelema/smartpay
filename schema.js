@@ -11,6 +11,24 @@ const typeDefs = gql`
         name: String!
     }
 
+    type Contract {
+        paymentMethod: String!
+        noInstallment: String!
+        dateOfirstInstallment: String!
+        installmentAmount: String!
+        tracking: String!
+        installmentDates: String!
+        collectionReason: String!
+        contractID: String!
+    }
+
+
+
+    type SigninResponse {
+        token: String!
+        businessName: String
+    }
+
     enum AccountTypes {
         CHECQUE
         SAVINGS
@@ -23,13 +41,14 @@ const typeDefs = gql`
 
     type Query {
         current: User
-        contract(bizId: Int!): String
+        contract(clientID: String!): Contract
         businessClients: [Client]
+        getContract(clientID: String!): [Contract]
     }
 
     type Mutation {
         register(username: String!, email: String!, password: String!): String
-        login(username: String!, password: String!): String
+        login(username: String!, password: String!): SigninResponse
         registerBusiness(
             name: String!,
             regNumber: String!, 
@@ -56,6 +75,7 @@ const typeDefs = gql`
         ): String
 
         createContract(
+            clientID: String!,
             paymentMethod: PaymentTypes!,
             noInstallment: String!,
             dateOfirstInstallment: String!,
@@ -64,6 +84,8 @@ const typeDefs = gql`
             installmentDates: String!,
             collectionReason: String!
         ): String
+
+
     }
 `;
 
