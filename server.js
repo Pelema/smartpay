@@ -7,9 +7,12 @@ const resolvers = require('./resolvers');
 var mysql = require('promise-mysql');
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 var cors = require('cors')
+const path = require('path');
 
 const app = express();
 app.use(cors())
+
+app.use(express.static(path.join(__dirname, 'dist')));
 
 var connection = mysql.createConnection({
     host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
@@ -18,8 +21,6 @@ var connection = mysql.createConnection({
     port: 3306,
     database: 'smartstore'
 });
-
-app.use('/', express.static('dist'));
 
 app.get('/genCSV', function (req, res) {
     return connection.then((conn) => {
@@ -78,6 +79,10 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app });
 
+app.get('*', (req, res)=>{
+    console.log(__dirname)
+    res.sendFile(path.join(__dirname+'/dist/index.html'))
+})
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log('The server started on port ' + PORT);
