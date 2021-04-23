@@ -29,7 +29,6 @@ const resolvers = {
                 // result.forEach(el => {
                 //     list.push({ name: el.clientFullname, id: el.client_id })
                 // })
-                console.log(result)
                 return result
             }).catch(error => {
                 throw error
