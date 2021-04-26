@@ -58,7 +58,7 @@ const typeDefs = gql`
             bizEmail: String!,
             postalAddr: String!,
             bankAccName: String!,
-            bankAccNumber: Int!,
+            bankAccNumber: String!,
             bankAccType: AccountTypes!,
             branchCode: String!
         ):String
@@ -69,7 +69,7 @@ const typeDefs = gql`
             email: String!,
             bank: String!,
             bankAccName: String!,
-            bankAccNumber: Int!,
+            bankAccNumber: String!,
             bankAccType: AccountTypes!,
             biCode: String!
         ): String
