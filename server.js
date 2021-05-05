@@ -8,6 +8,7 @@ var mysql = require('promise-mysql');
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 var cors = require('cors')
 const path = require('path');
+const fs = require('fs')
 
 const app = express();
 app.use(cors())
@@ -22,33 +23,46 @@ var connection = mysql.createConnection({
     database: 'smartstore'
 });
 
-app.get('/genCSV', function (req, res) {
+app.get('/downloadCSV', function (req, res) {
     return connection.then((conn) => {
-        return conn.query("SELECT * FROM recipients")
-    }).then((data) => {
-        const jsonData = JSON.parse(JSON.stringify(data));
-
-        const csvWriter = createCsvWriter({
-            path: "csvWriter.csv",
-            header: [
-                { id: 'recipientName', title: 'recipientName'},
-                { id: 'recipientAccount', title: 'recipientAccount'},
-                { id: 'recipientAccType', title: 'recipientAccType'},
-                { id: 'biCode', title: 'biCode'},
-                { id: 'amount', title: 'amount'},
-                { id: 'contractReference', title: 'contractReference'},
-                { id: 'tracking', title: 'tracking'},
-                { id: 'abbreviatedName', title: 'abbreviatedName'},
-                { id: 'reasonForCollection', title: 'reasonForCollection'}
-            ]
+        return conn.query(`
+        select clientFullname, accountNo, bankAccType, biCode, installmentAmount, contractID, tracking, abbreviatedBusinessName, collectionReason
+        from client_details AS cn
+        inner join
+        client_account_info AS cai
+        on cn.client_id = cai.clientID
+        inner join
+        contract_details AS cd
+        on cai.clientID = cd.clientID
+        inner join
+        business_account AS ba
+        on ba.businessID = cn.businessID
+        where ba.businessID = '29';`)
+    }).then(async (data) => {
+        var content = '14214212442,,,,,,,\r\n 01/23/2021, \'12233434\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
+        var clientSum = 0
+        data.forEach(row => {
+            clientSum += parseInt(row.accountNo)
+            content += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.collectionReason + '\r\n')
         })
 
-        return csvWriter.writeRecords(jsonData)
 
-    }).then((result) => {
-        return res.download('./csvWriter.csv')
+        businessAccountNumber = 12346990
+        hashSum = clientSum + businessAccountNumber
+        actualHash = hashSum.toString().substr(hashSum.toString().length - 12)
+
+        try {
+            const data = fs.writeFileSync('test.txt', content)
+            //file written successfully
+            fs.renameSync('test.txt', 'test.csv');
+        } catch (err) {
+            console.error(err)
+        }
+
+        return res.download('./test.csv')
+
     }).catch(error => {
-        return res.status(500).send({ error: error})
+        return res.status(500).send({ error: error })
     })
 })
 
@@ -79,9 +93,9 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app });
 
-app.get('*', (req, res)=>{
+app.get('*', (req, res) => {
     console.log(__dirname)
-    res.sendFile(path.join(__dirname+'/dist/index.html'))
+    res.sendFile(path.join(__dirname + '/dist/index.html'))
 })
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
