@@ -155,8 +155,7 @@ const resolvers = {
 
         createClient(_, clientDet, { user, connection }) {
             var trans
-            console.log('dddd')
-
+            
             //client general details
             detVals = {
                 clientFullname: clientDet.name,
@@ -180,13 +179,11 @@ const resolvers = {
                 email: clientDet.email,
                 cellphoneNo: clientDet.cell
             }
-            console.log('888')
 
             return connection.then(conn => {
                 trans = conn
                 return conn.beginTransaction()
             }).then(() => {
-                console.log('dd')
                 return trans.query('INSERT INTO client_details SET?', [detVals])
             }).then((result) => {
                 console.log(result)
