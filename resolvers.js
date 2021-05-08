@@ -116,7 +116,7 @@ const resolvers = {
             }
 
             accVals = {
-                bankID: 1,
+                bankID: 3,
                 businessID: null,
                 accountName: regInfo.bankAccName,
                 bankAccType: regInfo.bankAccType,
@@ -155,7 +155,7 @@ const resolvers = {
 
         createClient(_, clientDet, { user, connection }) {
             var trans
-            
+
             //client general details
             detVals = {
                 clientFullname: clientDet.name,
