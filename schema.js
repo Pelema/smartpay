@@ -64,6 +64,7 @@ const typeDefs = gql`
         ):String
 
         createClient(
+            clientNumber: String!,
             name: String!,
             cell: String!,
             email: String!,

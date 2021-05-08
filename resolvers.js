@@ -164,7 +164,7 @@ const resolvers = {
 
             //client account contact details
             accVals = {
-                clientID: null,
+                clientID: clientDet.clientNumber,
                 accountName: clientDet.bankAccName,
                 bankAccType: clientDet.bankAccType,
                 accountNo: clientDet.bankAccNumber,
@@ -174,7 +174,7 @@ const resolvers = {
 
             //client contact details
             contactVals = {
-                clientID: null,
+                clientID: clientDet.clientNumber,
                 email: clientDet.email,
                 cellphoneNo: clientDet.cell
             }
@@ -185,8 +185,6 @@ const resolvers = {
             }).then(() => {
                 return trans.query('INSERT INTO client_details SET?', [detVals])
             }).then((result) => {
-                contactVals.clientID = result.insertId
-                accVals.clientID = result.insertId
                 return trans.query('INSERT INTO client_account_info SET?', [accVals])
             }).then(() => {
                 return trans.query('INSERT INTO client_contact_details SET?', [contactVals])
