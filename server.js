@@ -66,7 +66,7 @@ app.get('/downloadCSV', function (req, res) {
         var clientSum = 0
         data.forEach(row => {
             clientSum += parseInt(row.accountNo)
-            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.collectionReason + '\r\n')
+            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking+ ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
         })
 
 
