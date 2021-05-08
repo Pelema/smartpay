@@ -32,6 +32,7 @@ const typeDefs = gql`
     enum AccountTypes {
         CHECQUE
         SAVINGS
+        TRANSMISSION
     }
 
     enum PaymentTypes {
