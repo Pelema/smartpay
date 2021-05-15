@@ -22,7 +22,18 @@ const typeDefs = gql`
         contractID: String!
     }
 
-
+    type Transaction {
+        clientID: String!
+        clientFullname: String!
+        paymentMethod: String!
+        noInstallment: String!
+        dateOfirstInstallment: String!
+        installmentAmount: String!
+        tracking: String!
+        installmentDates: String!
+        collectionReason: String!
+        contractID: String!
+    } 
 
     type SigninResponse {
         token: String!
@@ -45,6 +56,7 @@ const typeDefs = gql`
         contract(clientID: String!): Contract
         businessClients: [Client]
         getContract(clientID: String!): [Contract]
+        getTransactions(start: String!, end: String!): [Transaction]
     }
 
     type Mutation {

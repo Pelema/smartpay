@@ -33,7 +33,23 @@ const resolvers = {
             }).catch(error => {
                 throw error
             })
-        }
+        },
+
+        getTransactions(_, {start, end}, {connection }){
+            return connection.then(conn => {
+                return conn.query(`SELECT * FROM client_details AS cld
+                inner join
+                contract_details AS cd
+                on cld.client_id = cd.clientID
+                WHERE (dateOfirstInstallment BETWEEN ? AND ?) 
+                and businessID = ?`, [start, end, 32])
+            }).then(result => {
+                return result
+            }).catch(error => {
+                throw error
+            })
+        },
+
     },
 
     Mutation: {
@@ -52,7 +68,7 @@ const resolvers = {
             })
         },
 
-        login(_, { username, password }, { connection, user }) {
+        login(_, { username, password }, { connection }) {
             var temp_userID
             var temp_conn
             return connection.then(conn => {
@@ -76,7 +92,6 @@ const resolvers = {
                     }
                     return temp_conn.query('SELECT businessName, businessID FROM business_account WHERE userID=?', [temp_userID])
                 }).then(res => {
-                    console.log(res, ' biz ')
 
                     if (!res.length) {
                         return {
