@@ -60,7 +60,6 @@ app.get('/downloadCSV', function (req, res) {
         where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment='${req.query.date}'`)
     }).then(async (data) => {
         var date = new Date(req.query.date)
-        console.log(data)
         var content = bizAccount + ',,,,,,,\r\n ' + date.getDate()+"/"+(date.getMonth()+1)+"/"+date.getFullYear() +', \''
         var contentBody = '\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
 
