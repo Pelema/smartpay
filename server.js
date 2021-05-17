@@ -57,11 +57,11 @@ app.get('/downloadCSV', function (req, res) {
         inner join
         business_account AS ba
         on ba.businessID = cn.businessID
-        where ba.businessID = ${decodedToken.businessID}`)
+        where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment =  ${req.query.date}`)
     }).then(async (data) => {
-        var date = new Date(Date.now())
+        var date = new Date(req.query.date)
 
-        var content = bizAccount + ',,,,,,,\r\n ' + date.getDay()+"/"+date.getMonth()+"/"+date.getFullYear() +', \''
+        var content = bizAccount + ',,,,,,,\r\n ' + date.getDate()+"/"+(date.getMonth()+1)+"/"+date.getFullYear() +', \''
         var contentBody = '\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
 
         var clientSum = 0

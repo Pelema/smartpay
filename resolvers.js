@@ -35,14 +35,14 @@ const resolvers = {
             })
         },
 
-        getTransactions(_, {start, end}, {connection }){
+        getTransactions(_, {start, end}, {connection, user }){
             return connection.then(conn => {
                 return conn.query(`SELECT * FROM client_details AS cld
                 inner join
                 contract_details AS cd
                 on cld.client_id = cd.clientID
                 WHERE (dateOfirstInstallment BETWEEN ? AND ?) 
-                and businessID = ?`, [start, end, 32])
+                and businessID = ?`, [start, end, user.businessID])
             }).then(result => {
                 return result
             }).catch(error => {
