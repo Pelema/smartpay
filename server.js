@@ -24,6 +24,7 @@ var connection = mysql.createConnection({
     database: 'smartstore'
 })
 
+
 app.get('/downloadCSV', function (req, res) {
 
     //verify that user has rights to access route by checking token
@@ -66,14 +67,14 @@ app.get('/downloadCSV', function (req, res) {
         var clientSum = 0
         data.forEach(row => {
             clientSum += parseInt(row.accountNo)
-            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.collectionReason + '\r\n')
+            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking+ ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
         })
 
 
         businessAccountNumber = parseInt(bizAccount)
         hashSum = clientSum + businessAccountNumber
         actualHash = hashSum.toString().substr(hashSum.toString().length - 12)
-        console.log(content)
+
         content += actualHash + contentBody 
         try {
             const data = fs.writeFileSync('test.txt', content)
