@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="67" viewBox="0 0 760 67">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #360c55;
+        font-size: 50px;
+        font-family: SegoeUI-Semibold, Segoe UI;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+      }
+    </style>
+  </defs>
+  <text id="What_do_you_want_to_do_today_" data-name="What do you want to do today?" class="cls-1" transform="translate(0 54)"><tspan x="0" y="0">What do you want to do today?</tspan></text>
+</svg>
