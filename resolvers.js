@@ -217,12 +217,70 @@ const resolvers = {
             })
         },
 
+        editClient(_, clientDet, { user, connection }) {
+            var trans
+
+            //client general details
+            detVals = {
+                clientFullname: clientDet.name,
+                businessID: user.businessID,
+                client_id: clientDet.clientNumber
+            }
+
+            //client account contact details
+            accVals = {
+                clientID: clientDet.clientNumber,
+                accountName: clientDet.bankAccName,
+                bankAccType: clientDet.bankAccType,
+                accountNo: clientDet.bankAccNumber,
+                biCode: clientDet.biCode,
+                bankID: clientDet.bank
+            }
+
+            //client contact details
+            contactVals = {
+                clientID: clientDet.clientNumber,
+                email: clientDet.email,
+                cellphoneNo: clientDet.cell
+            }
+
+            return connection.then(conn => {
+                trans = conn
+                return conn.beginTransaction()
+            }).then(() => {
+                return trans.query('UPDATE INTO client_details SET?', [detVals])
+            }).then((result) => {
+                console.log(result)
+                return trans.query('UPDATE INTO client_account_info SET?', [accVals])
+            }).then(() => {
+                return trans.query('UPDATE INTO client_contact_details SET?', [contactVals])
+            }).then(() => {
+                return trans.commit()
+            }).then(() => {
+                return ''
+            }).catch(error => {
+                if (trans) {
+                    trans.rollback()
+                }
+                throw error
+            })
+        },
+
         createContract(_, contractVals, { user, connection }) {
 
             return connection.then(conn => {
                 return conn.query('INSERT INTO contract_details SET ?', { ...contractVals })
             }).then(() => {
                 return 'Contract created'
+            }).catch(error => { throw error })
+        },
+
+        editContract(_, contractVals, { user, connection }) {
+
+            return connection.then(conn => {
+                return conn.query('UPDATE INTO contract_details SET ?', { ...contractVals })
+            }).then(() => {
+                return 'Contract edited'
             }).catch(error => { throw error })
         },
 
