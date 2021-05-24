@@ -88,6 +88,18 @@ const typeDefs = gql`
             biCode: String!
         ): String
 
+        editClient(
+            clientNumber: String!,
+            name: String!,
+            cell: String!,
+            email: String!,
+            bank: String!,
+            bankAccName: String!,
+            bankAccNumber: String!,
+            bankAccType: AccountTypes!,
+            biCode: String!
+        ): String
+
         createContract(
             clientID: String!,
             paymentMethod: PaymentTypes!,
@@ -99,6 +111,16 @@ const typeDefs = gql`
             collectionReason: String!
         ): String
 
+        editContract(
+            clientID: String!,
+            paymentMethod: PaymentTypes!,
+            noInstallment: String!,
+            dateOfirstInstallment: String!,
+            installmentAmount: Float!,
+            tracking: String!,
+            installmentDates: String!,
+            collectionReason: String!
+        ): String
 
     }
 `;
