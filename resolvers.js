@@ -8,11 +8,27 @@ const resolvers = {
     Query: {
         businessClients(_, { }, { connection, user }) {
             return connection.then(conn => {
-                return conn.query('SELECT * FROM client_details WHERE businessID =?', [user.businessID])
+                
+                return conn.query(`SELECT cd.clientFullname, cd.client_id, bai.bankName,ctd.noOfContracts,ctd.sumAmount
+                FROM client_details cd
+                LEFT JOIN client_account_info cai
+                ON cd.client_id = cai.clientID
+                left JOIN (
+                SELECT clientID,COUNT(*) AS noOfContracts,
+                SUM(installmentAmount) AS sumAmount
+                FROM contract_details
+                GROUP BY clientID) ctd
+                ON ctd.clientID=cd.client_id
+                left join bank as bai
+                on cai.bankID = bai.bankID
+                left join
+                business_account AS ba
+                on ba.businessID = cd.businessID
+                where ba.businessID = ?`, [user.businessID])
             }).then(result => {
                 var list = []
                 result.forEach(el => {
-                    list.push({ name: el.clientFullname, id: el.client_id })
+                    list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.clientID, installmentAmount: el.installmentAmount })
                 })
 
                 return list
