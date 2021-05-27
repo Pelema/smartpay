@@ -28,7 +28,11 @@ const resolvers = {
             }).then(result => {
                 var list = []
                 result.forEach(el => {
-                    list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.clientID, installmentAmount: el.installmentAmount })
+                    if(!el.noOfContracts){
+                        el.noOfContracts = 0
+                        el.sumAmount = 0
+                    }
+                    list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.noOfContracts, installmentAmount: el.sumAmount })
                 })
 
                 return list
