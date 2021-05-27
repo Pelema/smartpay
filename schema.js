@@ -7,8 +7,11 @@ const typeDefs = gql`
     }
 
     type Client {
-        id: String!,
+        id: String!
         name: String!
+        bankName: String!
+        noContract: String!
+        installmentAmount: String!
     }
 
     type Contract {
