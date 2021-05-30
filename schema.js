@@ -59,6 +59,7 @@ const typeDefs = gql`
         contract(clientID: String!): Contract
         businessClients: [Client]
         getContract(clientID: String!): [Contract]
+        getEditableContract(contractID: String!): [Contract]
         getTransactions(start: String!, end: String!): [Transaction]
     }
 
