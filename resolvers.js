@@ -55,6 +55,21 @@ const resolvers = {
             })
         },
 
+        // Please check this one out properly
+        getEditableContract(_, { contractID }, { connection, user}) {
+            return connection.then(conn => {
+                return conn.query('SELECT * FROM contract_details WHERE contractID =?', [contractID])
+            }).then(result => {
+                // var list = []
+                // result.forEach(el => {
+                //     list.push({ name: el.clientFullname, id: el.client_id })
+                // })
+                return result
+            }).catch(error => {
+                throw error
+            })
+        },
+
         getTransactions(_, {start, end}, {connection, user }){
             return connection.then(conn => {
                 return conn.query(`SELECT * FROM client_details AS cld
@@ -298,7 +313,15 @@ const resolvers = {
         editContract(_, contractVals, { user, connection }) {
 
             return connection.then(conn => {
-                return conn.query('UPDATE INTO contract_details SET ?', { ...contractVals })
+                return conn.query(`UPDATE contract_details
+                SET paymentMethod = ?,
+                    installmentAmount = ?,
+                    installmentDates = ?,
+                    noInstallment = ?,
+                    dateOfirstInstallment = ?,
+                    tracking = ?,
+                    collectionReason = ?,
+                WHERE contractID = ?`, { ...contractVals })
             }).then(() => {
                 return 'Contract edited'
             }).catch(error => { throw error })
