@@ -310,7 +310,7 @@ const resolvers = {
             }).catch(error => { throw error })
         },
 
-        editContract(_, contractID, { user, connection }) {
+        editContract(_, contractVals, { user, connection }) {
 
             return connection.then(conn => {
                 return conn.query(`UPDATE contract_details
@@ -321,12 +321,11 @@ const resolvers = {
                     dateOfirstInstallment = ?,
                     tracking = ?,
                     collectionReason = ?,
-                WHERE contractID = ?`, [contractID])
+                WHERE contractID = ?`, { ...contractVals }) 
             }).then(() => {
                 return 'Contract edited'
             }).catch(error => { throw error })
         },
-
     }
 }
 
