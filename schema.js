@@ -22,7 +22,7 @@ const typeDefs = gql`
         tracking: String!
         installmentDates: String!
         collectionReason: String!
-        contractID: String!
+        contractID: String
     }
 
     type Transaction {
@@ -118,7 +118,8 @@ const typeDefs = gql`
         ): String
 
         editContract(
-            clientID: String!,
+            clientID: String,
+            contractID: String,
             paymentMethod: PaymentTypes!,
             noInstallment: String!,
             dateOfirstInstallment: String!,
