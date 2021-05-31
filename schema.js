@@ -65,7 +65,9 @@ const typeDefs = gql`
 
     type Mutation {
         register(username: String!, email: String!, password: String!): String
+        
         login(username: String!, password: String!): SigninResponse
+
         registerBusiness(
             name: String!,
             regNumber: String!, 
