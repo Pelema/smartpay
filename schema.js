@@ -118,7 +118,6 @@ const typeDefs = gql`
         ): String
 
         editContract(
-            clientID: String,
             contractID: String,
             paymentMethod: PaymentTypes!,
             noInstallment: String!,
