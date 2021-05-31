@@ -302,7 +302,6 @@ const resolvers = {
         },
 
         createContract(_, contractVals, { user, connection }) {
-
             return connection.then(conn => {
                 return conn.query('INSERT INTO contract_details SET ?', { ...contractVals })
             }).then(() => {
@@ -311,7 +310,6 @@ const resolvers = {
         },
 
         editContract(_, contractVals, { user, connection }) {
-
             return connection.then(conn => {
                 return conn.query(`UPDATE contract_details
                 SET paymentMethod = ?,
@@ -320,9 +318,19 @@ const resolvers = {
                     noInstallment = ?,
                     dateOfirstInstallment = ?,
                     tracking = ?,
-                    collectionReason = ?,
-                WHERE contractID = ?`, { ...contractVals }) 
-            }).then(() => {
+                    collectionReason = ?
+                WHERE contractID = ?`, [
+                    contractVals.paymentMethod,
+                    contractVals.installmentAmount, 
+                    contractVals.installmentDates,
+                    contractVals.noInstallment,
+                    contractVals.dateOfirstInstallment,
+                    contractVals.tracking,
+                    contractVals.collectionReason,
+                    contractVals.contractID
+                ]) 
+            }).then((res) => {
+                console.log(res)
                 return 'Contract edited'
             }).catch(error => { throw error })
         },
