@@ -252,7 +252,7 @@ const resolvers = {
             })
         },
 
-        editClient(_, clientDet, { user, connection }) {
+        editClientDetails(_, clientDet, { user, connection }) {
             var trans
 
             //client general details
@@ -287,8 +287,8 @@ const resolvers = {
                 client_id = ?,
                 clientFullname = ?
                 WHERE client_id = ? `,
-                [detVals.client_id,
-                detVals.clientFullname])
+                [detVals.clientNumber,
+                detVals.name])
             }).then((result) => {
                 console.log(result)
                 return trans.query(`UPDATE client_account_info SET
@@ -298,18 +298,18 @@ const resolvers = {
                 accountNo = ?,
                 biCode = ?
                 WHERE clientID = ?`,
-                [accVals.clientID,
-                accVals.bankID,
-                accVals.accountName,
+                [accVals.clientNumber,
+                accVals.bank,
+                accVals.bankAccName,
+                accVals.bankAccNumber,
                 accVals.bankAccType,
-                accVals.accountNo,
                 accVals.biCode])
             }).then(() => {
                 return trans.query(`UPDATE client_contact_details SET
                 cellphoneNo = ?,
                 email = ?
                 WHERE clientID = ?`, 
-                [contactVals.cellphoneNo, contactVals.email, contactVals.clientID])
+                [contactVals.cell, contactVals.email, contactVals.clientNumber])
             }).then(() => {
                 return trans.commit()
             }).then(() => {

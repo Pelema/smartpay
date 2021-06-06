@@ -94,7 +94,7 @@ const typeDefs = gql`
             biCode: String!
         ): String
 
-        editClient(
+        editClientDetails(
             clientNumber: String!,
             name: String!,
             cell: String!,
