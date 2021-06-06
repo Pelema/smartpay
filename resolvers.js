@@ -255,30 +255,6 @@ const resolvers = {
         editClientDetails(_, clientDet, { user, connection }) {
             var trans
 
-            //client general details
-            detVals = {
-                clientFullname: clientDet.name,
-                businessID: user.businessID,
-                client_id: clientDet.clientNumber
-            }
-
-            //client account contact details
-            accVals = {
-                clientID: clientDet.clientNumber,
-                accountName: clientDet.bankAccName,
-                bankAccType: clientDet.bankAccType,
-                accountNo: clientDet.bankAccNumber,
-                biCode: clientDet.biCode,
-                bankID: clientDet.bank
-            }
-
-            //client contact details
-            contactVals = {
-                clientID: clientDet.clientNumber,
-                email: clientDet.email,
-                cellphoneNo: clientDet.cell
-            }
-
             return connection.then(conn => {
                 trans = conn
                 return conn.beginTransaction()
@@ -287,8 +263,8 @@ const resolvers = {
                 client_id = ?,
                 clientFullname = ?
                 WHERE client_id = ? `,
-                [detVals.clientNumber,
-                detVals.name])
+                [clientDet.clientNumber,
+                clientDet.name, clientDet.clientNumber])
             }).then((result) => {
                 console.log(result)
                 return trans.query(`UPDATE client_account_info SET
@@ -298,18 +274,18 @@ const resolvers = {
                 accountNo = ?,
                 biCode = ?
                 WHERE clientID = ?`,
-                [accVals.clientNumber,
-                accVals.bank,
-                accVals.bankAccName,
-                accVals.bankAccNumber,
-                accVals.bankAccType,
-                accVals.biCode])
+                [clientDet.bank,
+                clientDet.bankAccName,
+                clientDet.bankAccNumber,
+                clientDet.bankAccType,
+                clientDet.biCode,
+                clientDet.clientNumber])
             }).then(() => {
                 return trans.query(`UPDATE client_contact_details SET
                 cellphoneNo = ?,
                 email = ?
                 WHERE clientID = ?`, 
-                [contactVals.cell, contactVals.email, contactVals.clientNumber])
+                [lientDet.cell, lientDet.email, lientDet.clientNumber])
             }).then(() => {
                 return trans.commit()
             }).then(() => {
