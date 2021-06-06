@@ -283,12 +283,32 @@ const resolvers = {
                 trans = conn
                 return conn.beginTransaction()
             }).then(() => {
-                return trans.query('UPDATE INTO client_details SET?', [detVals])
+                return trans.query(`UPDATE client_details SET
+                client_id = ?,
+                clientFullname = ?
+                WHERE client_id = ? `,
+                [detVals.client_id,
+                detVals.clientFullname])
             }).then((result) => {
                 console.log(result)
-                return trans.query('UPDATE INTO client_account_info SET?', [accVals])
+                return trans.query(`UPDATE client_account_info SET
+                bankID = ?,
+                accountName = ?,
+                bankAccType = ?,
+                accountNo = ?,
+                biCode = ?
+                WHERE clientID = ?`,
+                [accVals.clientID,
+                accVals.bankID,
+                accVals.bankAccType,
+                accVals.accountNo,
+                accVals.biCode])
             }).then(() => {
-                return trans.query('UPDATE INTO client_contact_details SET?', [contactVals])
+                return trans.query(`UPDATE client_contact_details SET
+                cellphoneNo = ?,
+                email = ?
+                WHERE clientID = ?`, 
+                [contactVals.cellphoneNo, contactVals.email])
             }).then(() => {
                 return trans.commit()
             }).then(() => {
