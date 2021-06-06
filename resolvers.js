@@ -300,6 +300,7 @@ const resolvers = {
                 WHERE clientID = ?`,
                 [accVals.clientID,
                 accVals.bankID,
+                accVals.accountName,
                 accVals.bankAccType,
                 accVals.accountNo,
                 accVals.biCode])
@@ -308,7 +309,7 @@ const resolvers = {
                 cellphoneNo = ?,
                 email = ?
                 WHERE clientID = ?`, 
-                [contactVals.cellphoneNo, contactVals.email])
+                [contactVals.cellphoneNo, contactVals.email, contactVals.clientID])
             }).then(() => {
                 return trans.commit()
             }).then(() => {
