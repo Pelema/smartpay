@@ -285,7 +285,7 @@ const resolvers = {
                 cellphoneNo = ?,
                 email = ?
                 WHERE clientID = ?`, 
-                [lientDet.cell, lientDet.email, lientDet.clientNumber])
+                [clientDet.cell, clientDet.email, clientDet.clientNumber])
             }).then(() => {
                 return trans.commit()
             }).then(() => {
