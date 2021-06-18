@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const { ApolloServer } = require('apollo-server-express')
 const jwt = require('express-jwt')
@@ -11,22 +12,16 @@ var cors = require('cors')
 const path = require('path')
 const fs = require('fs')
 
+console.log(process.env.DB_NAME)
+
 const { Sequelize, Op, Model, DataTypes } = require("sequelize");
 const app = express()
 app.use(cors())
 
 app.use(express.static(path.join(__dirname, 'dist')))
 
-// var connection = mysql.createConnection({
-//     host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
-//     user: 'admin',
-//     password: 'smart9812',
-//     port: 3306,
-//     database: 'smartstore'
-// })
-
-const sequelize = new Sequelize('smartstore', 'admin', 'smart9812', {
-    host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASS, {
+    host: process.env.DB_HOST,
     dialect: 'mysql'
 });
 
@@ -38,6 +33,8 @@ test_conn = async () =>{
         console.error('Unable to connect to the database:', error);
     }
 }
+
+test_conn()
 
 app.get('/downloadCSV', function (req, res) {
 
