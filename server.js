@@ -11,19 +11,33 @@ var cors = require('cors')
 const path = require('path')
 const fs = require('fs')
 
+const { Sequelize, Op, Model, DataTypes } = require("sequelize");
 const app = express()
 app.use(cors())
 
 app.use(express.static(path.join(__dirname, 'dist')))
 
-var connection = mysql.createConnection({
-    host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
-    user: 'admin',
-    password: 'smart9812',
-    port: 3306,
-    database: 'smartstore'
-})
+// var connection = mysql.createConnection({
+//     host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
+//     user: 'admin',
+//     password: 'smart9812',
+//     port: 3306,
+//     database: 'smartstore'
+// })
 
+const sequelize = new Sequelize('smartstore', 'admin', 'smart9812', {
+    host: 'smartdb.casy0dqe9tjt.us-east-2.rds.amazonaws.com',
+    dialect: 'mysql'
+});
+
+test_conn = async () =>{
+    try {
+        await sequelize.authenticate();
+        console.log('Connection has been established successfully.');
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+    }
+}
 
 app.get('/downloadCSV', function (req, res) {
 
@@ -34,14 +48,14 @@ app.get('/downloadCSV', function (req, res) {
         return res.sendStatus(403)
     }
 
-    var temp_conn 
+    var temp_conn
     var bizAccount
     //if pass then connect to database and collect client data for csv
     return connection.then((conn) => {
         temp_conn = conn
         return conn.query(`select accountNo from business_account_info where businessID = ${decodedToken.businessID}`)
 
-    }).then((res)=>{
+    }).then((res) => {
 
         bizAccount = res[0].accountNo
 
@@ -60,13 +74,13 @@ app.get('/downloadCSV', function (req, res) {
         where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment='${req.query.date}'`)
     }).then(async (data) => {
         var date = new Date(req.query.date)
-        var content = bizAccount + ',,,,,,,\r\n ' + date.getDate()+"/"+(date.getMonth()+1)+"/"+date.getFullYear() +', \''
+        var content = bizAccount + ',,,,,,,\r\n ' + date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + ', \''
         var contentBody = '\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
 
         var clientSum = 0
         data.forEach(row => {
             clientSum += parseInt(row.accountNo)
-            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking+ ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
+            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
         })
 
 
@@ -74,7 +88,7 @@ app.get('/downloadCSV', function (req, res) {
         hashSum = clientSum + businessAccountNumber
         actualHash = hashSum.toString().substr(hashSum.toString().length - 12)
 
-        content += actualHash + contentBody 
+        content += actualHash + contentBody
         try {
             const data = fs.writeFileSync('test.txt', content)
             //file written successfully
