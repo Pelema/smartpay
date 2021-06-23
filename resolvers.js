@@ -43,7 +43,7 @@ const resolvers = {
         },
         getContract(_, { clientID }, { connection, user}) {
             return connection.then(conn => {
-                return conn.query('SELECT * FROM contract_details WHERE clientID =?', [clientID])
+                return conn.query('SELECT * FROM contract_details WHERE clientID =?', [clientID+''])
             }).then(result => {
                 // var list = []
                 // result.forEach(el => {
@@ -69,6 +69,26 @@ const resolvers = {
                 throw error
             })
         },
+
+        // getClientDetails(_, { clientID }, { connection, user}) {
+        //     return connection.then(conn => {
+        //         return conn.query(`SELECT cd.client_id, cd.clientFullname, cc.cellphoneNo, cc.email, cai.bankID, cai.accountName, cai.bankAccType, cai.biCode
+        //         FROM client_details cd
+        //         LEFT JOIN client_contact_details cc
+        //         ON cd.client_id = cc.clientID
+        //         LEFT JOIN client_account_info cai
+        //         ON cc.clientID = cai.clientID
+        //         WHERE cd.client_id = ?`, [clientID])
+        //     }).then(result => {
+        //         // var list = []
+        //         // result.forEach(el => {
+        //         //     list.push({ name: el.clientFullname, id: el.client_id })
+        //         // })
+        //         return result
+        //     }).catch(error => {
+        //         throw error
+        //     })
+        // },
 
         getTransactions(_, {start, end}, {connection, user }){
             return connection.then(conn => {

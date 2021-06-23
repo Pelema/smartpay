@@ -14,6 +14,18 @@ const typeDefs = gql`
         installmentAmount: String!
     }
 
+    # type ClientDetails {
+    #     clientID: String!
+    #     name: String!
+    #     cell: String!,
+    #     email: String!,
+    #     bank: String!,
+    #     bankAccName: String!,
+    #     bankAccNumber: String!,
+    #     bankAccType: AccountTypes!,
+    #     biCode: String!
+    # }
+
     type Contract {
         paymentMethod: String!
         noInstallment: String!
@@ -60,6 +72,7 @@ const typeDefs = gql`
         businessClients: [Client]
         getContract(clientID: String!): [Contract]
         getEditableContract(contractID: String!): [Contract]
+        # getClientDetails(clientID: String!): [ClientDetails]
         getTransactions(start: String!, end: String!): [Transaction]
     }
 
