@@ -326,11 +326,12 @@ const resolvers = {
             }).catch(error => { throw error })
         },
 
-        deleteContract(_, contractVals, {user, connection}){
+        deleteContract(_, contractID, {user, connection}){
             return connection.then(conn => {
-                return conn.query(`DELETE FROM contract_details where contractID = ?`, { ...contractVals })
+                return conn.query(`DELETE FROM contract_details where contractID = ?`, { contractID })
             }).then(() => {
-                return 'Contract successfully deleted'
+                return 'Contract successfully deleted',
+                console.log(contractID);
             }).catch(error => { throw error })
         },
 
