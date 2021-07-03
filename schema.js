@@ -141,6 +141,9 @@ const typeDefs = gql`
             collectionReason: String!
         ): String
 
+        deleteContract(
+            contractID: String!
+        ): String
     }
 `;
 
