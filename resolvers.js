@@ -336,7 +336,11 @@ const resolvers = {
             }).then((res) => {
                 if(res.affectedRows == 1)
                     return 'Contract successfully deleted'
-                return 'Contract could not be deleted, Someting went wrong'
+                    {
+                        throw new Error(
+                            "Contract could not be deleted, Someting went wrong"
+                        )
+                    }
                 
             }).catch(error => { throw error })
         },
