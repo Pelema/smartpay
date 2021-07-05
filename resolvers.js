@@ -330,12 +330,14 @@ const resolvers = {
             }).catch(error => { throw error })
         },
 
-        deleteContract(_, contractID, {user, connection}){
+        deleteContract(_, {contractID}, {user, connection}){
             return connection.then(conn => {
-                return conn.query(`DELETE FROM contract_details where contractID = ?`, { contractID })
-            }).then(() => {
-                return 'Contract successfully deleted',
-                console.log(contractID);
+                return conn.query(`DELETE FROM contract_details where contractID = ?`,  [contractID] )
+            }).then((res) => {
+                if(res.affectedRows == 1)
+                    return 'Contract successfully deleted'
+                return 'Contract could not be deleted, Someting went wrong'
+                
             }).catch(error => { throw error })
         },
 
