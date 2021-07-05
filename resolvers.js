@@ -9,10 +9,12 @@ const resolvers = {
         businessClients(_, { }, { connection, user }) {
             return connection.then(conn => {
                 
-                return conn.query(`SELECT cd.clientFullname, cd.client_id, bai.bankName,ctd.noOfContracts,ctd.sumAmount
+                return conn.query(`SELECT cd.clientFullname, cd.client_id, ccd.cellphoneNo, ccd.email, bai.bankName, cai.accountName, cai.accountNo, cai.bankAccType, bai.bicCode, ctd.noOfContracts,ctd.sumAmount
                 FROM client_details cd
                 LEFT JOIN client_account_info cai
                 ON cd.client_id = cai.clientID
+                LEFT JOIN client_contact_details ccd
+                ON cai.clientID = ccd.clientID
                 left JOIN (
                 SELECT clientID,COUNT(*) AS noOfContracts,
                 SUM(installmentAmount) AS sumAmount
@@ -32,7 +34,9 @@ const resolvers = {
                         el.noOfContracts = 0
                         el.sumAmount = 0
                     }
-                    list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.noOfContracts, installmentAmount: el.sumAmount })
+                    list.push({ name: el.clientFullname, id: el.client_id, cell: el.cellphoneNo, email: el.email, 
+                                bankName: el.bankName, bankAccName: el.accountName, bankAccNumber: el.accountNo, bankAccType: el.bankAccType,
+                                biCode: el.bicCode, noContract: el.noOfContracts, installmentAmount: el.sumAmount })
                 })
 
                 return list
