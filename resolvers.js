@@ -330,7 +330,7 @@ const resolvers = {
             }).catch(error => { throw error })
         },
 
-        deleteContract(_, contractID, {user, connection}){
+        deleteContract(_, {contractID}, {user, connection}){
             return connection.then(conn => {
                 return conn.query(`DELETE FROM contract_details where contractID = ?`, { contractID })
             }).then(() => {
