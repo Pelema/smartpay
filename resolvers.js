@@ -332,7 +332,7 @@ const resolvers = {
 
         deleteContract(_, {contractID}, {user, connection}){
             return connection.then(conn => {
-                return conn.query(`DELETE FROM contract_details where contractID = ?`, { contractID })
+                return conn.query(`DELETE FROM contract_details where contractID = ?`, [ contractID ])
             }).then(() => {
                 return 'Contract successfully deleted',
                 console.log(contractID);
