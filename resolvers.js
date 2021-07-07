@@ -7,7 +7,7 @@ const { QueryTypes } = require('sequelize');
 
 const resolvers = {
     Query: {
-        businessClients(_, { }, { db, user }) {
+        businessClients(_, { }, { db }) {
             return db.query(`SELECT cd.clientFullname, cd.client_id, bai.bankName,ctd.noOfContracts,ctd.sumAmount
                 FROM client_details cd
                 LEFT JOIN client_account_info cai
@@ -24,7 +24,7 @@ const resolvers = {
                 business_account AS ba
                 on ba.businessID = cd.businessID
                 where ba.businessID = ?`, {
-                replacements: [businessID],
+                replacements: [6],
                 type: QueryTypes.SELECT
             })
             .then(result => {
