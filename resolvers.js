@@ -29,22 +29,20 @@ const resolvers = {
                 replacements: [user.businessID],
                 type: QueryTypes.SELECT
             })
-            .then(result => {
-                console.log('manage')
-                var list = []
-                result.forEach(el => {
-                    if (!el.noOfContracts) {
-                        el.noOfContracts = 0
-                        el.sumAmount = 0
-                    }
-                    list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.noOfContracts, installmentAmount: el.sumAmount })
-                })
+                .then(result => {
+                    var list = []
+                    result.forEach(el => {
+                        if (!el.noOfContracts) {
+                            el.noOfContracts = 0
+                            el.sumAmount = 0
+                        }
+                        list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.noOfContracts, installmentAmount: el.sumAmount })
+                    })
 
-                return list
-            }).catch(error => {
-                console.log(error, ' err')
-                throw error
-            })
+                    return list
+                }).catch(error => {
+                    throw error
+                })
 
         },
         getContract(_, { clientID }, { db, user }) {
@@ -52,11 +50,11 @@ const resolvers = {
                 replacements: [clientID],
                 type: QueryTypes.SELECT
             })
-                .then(result => {
-                    return result
-                }).catch(error => {
-                    throw error
-                })
+            .then(result => {
+                return result
+            }).catch(error => {
+                throw error
+            })
         },
 
         // Please check this one out properly
@@ -99,7 +97,7 @@ const resolvers = {
 
             return db.query('INSERT INTO users SET ?', {
                 replacements: [vals],
-                type: QueryTypes.SELECT
+                type: QueryTypes.INSERT
             })
                 .then(result => {
                     return jsonwebtoken.sign({ userID: result.insertId }, "JWT_SECRET", {
@@ -112,48 +110,50 @@ const resolvers = {
 
         login(_, { username, password }, { db }) {
             var temp_userID
-
+            const t = await db.transaction();
             return db.query('SELECT userID, username, password FROM users WHERE username=?', {
                 replacements: [username],
-                type: QueryTypes.SELECT
+                type: QueryTypes.SELECT,
+                transaction: t
             })
-            .then((res) => {
-                if (!res.length) {
-                    throw new Error(
-                        "This user doesn't exist."
-                    )
-                }
-                return res[0]
-            })
-            .then(res => {
-                temp_userID = res.userID
-                return bcrypt.compare(password, res.password)
-            })
-            .then(res => {
-                if (!res) {
-                    throw new Error("Your password is incorrect!");
-                }
-                return db.query('SELECT businessName, businessID FROM business_account WHERE userID=?', {
-                    replacements: [temp_userID],
-                    type: QueryTypes.SELECT
-                })
-            }).then(res => {
-
-                if (!res.length) {
-                    return {
-                        token: jsonwebtoken.sign({ userID: temp_userID }, "JWT_SECRET", { expiresIn: "1d" }),
-                        businessName: null
+                .then((res) => {
+                    if (!res.length) {
+                        throw new Error(
+                            "This user doesn't exist."
+                        )
                     }
-                }
+                    return res[0]
+                })
+                .then(res => {
+                    temp_userID = res.userID
+                    return bcrypt.compare(password, res.password)
+                })
+                .then(res => {
+                    if (!res) {
+                        throw new Error("Your password is incorrect!");
+                    }
+                    return db.query('SELECT businessName, businessID FROM business_account WHERE userID=?', {
+                        replacements: [temp_userID],
+                        type: QueryTypes.SELECT,
+                        transaction: t
+                    })
+                }).then(res => {
 
-                return {
-                    token: jsonwebtoken.sign({ userID: temp_userID, businessID: res[0].businessID }, "JWT_SECRET", { expiresIn: "1d" }),
-                    businessName: res[0].businessName
-                }
+                    if (!res.length) {
+                        return {
+                            token: jsonwebtoken.sign({ userID: temp_userID }, "JWT_SECRET", { expiresIn: "1d" }),
+                            businessName: null
+                        }
+                    }
 
-            }).catch(err => {
-                throw err
-            })
+                    return {
+                        token: jsonwebtoken.sign({ userID: temp_userID, businessID: res[0].businessID }, "JWT_SECRET", { expiresIn: "1d" }),
+                        businessName: res[0].businessName
+                    }
+
+                }).catch(err => {
+                    throw err
+                })
         },
 
         registerBusiness(_, regInfo, { user, db }) {
@@ -184,50 +184,46 @@ const resolvers = {
                 accountNo: regInfo.bankAccNumber
             }
 
-            var trans
+            const t = await db.transaction();
 
-            trans = db
-            return db.beginTransaction()
-                .then(() => {
-                    return trans.query('INSERT INTO business_account SET?', {
-                        replacements: [bizVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then((result) => {
-                    contactVals.businessID = result.insertId
-                    addrVals.businessID = result.insertId
-                    accVals.businessID = result.insertId
-                    return trans.query('INSERT INTO business_contact_details SET?', {
-                        replacements: [contactVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then(() => {
-                    return trans.query('INSERT INTO address SET?', {
-                        replacements: [addrVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then(() => {
-                    return trans.query('INSERT INTO business_account_info SET?', {
-                        replacements: [accVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then(() => {
-                    return trans.commit()
-                }).then(() => {
-                    return jsonwebtoken.sign({ userID: user.userID, businessID: contactVals.businessID }, "JWT_SECRET", {
-                        expiresIn: "1d",
-                    })
-                }).catch(error => {
-                    console.log(error, 'err')
-                    if (trans) {
-                        trans.rollback()
-                    }
-                    throw error
+            return db.query('INSERT INTO business_account SET?', {
+                replacements: [bizVals],
+                type: QueryTypes.INSERT,
+                transaction: t
+            }).then((result) => {
+                contactVals.businessID = result.insertId
+                addrVals.businessID = result.insertId
+                accVals.businessID = result.insertId
+                return db.query('INSERT INTO business_contact_details SET?', {
+                    replacements: [contactVals],
+                    type: QueryTypes.INSERT,
+                    transaction: t
                 })
+            }).then(() => {
+                return db.query('INSERT INTO address SET?', {
+                    replacements: [addrVals],
+                    type: QueryTypes.INSERT,
+                    transaction: t
+                })
+            }).then(() => {
+                return db.query('INSERT INTO business_account_info SET?', {
+                    replacements: [accVals],
+                    type: QueryTypes.INSERT,
+                    transaction: t
+                })
+            }).then(() => {
+                return t.commit()
+            }).then(() => {
+                return jsonwebtoken.sign({ userID: user.userID, businessID: contactVals.businessID }, "JWT_SECRET", {
+                    expiresIn: "1d",
+                })
+            }).catch(error => {
+                t.rollback()
+                throw error
+            })
         },
 
         createClient(_, clientDet, { user, db }) {
-            var trans
 
             //client general details
             detVals = {
@@ -253,57 +249,50 @@ const resolvers = {
                 cellphoneNo: clientDet.cell
             }
 
+            const t = await db.transaction();
 
-            trans = db
-            return db.beginTransaction()
-                .then(() => {
-                    return trans.query('INSERT INTO client_details SET?', {
-                        replacements: [detVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then((result) => {
-                    console.log(result)
-                    return trans.query('INSERT INTO client_account_info SET?', {
-                        replacements: [accVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then(() => {
-                    return trans.query('INSERT INTO client_contact_details SET?', {
-                        replacements: [contactVals],
-                        type: QueryTypes.INSERT
-                    })
-                }).then(() => {
-                    return trans.commit()
-                }).then(() => {
-                    return ''
-                }).catch(error => {
-                    if (trans) {
-                        trans.rollback()
-                    }
-                    throw error
+            return db.query('INSERT INTO client_details SET?', {
+                replacements: [detVals],
+                type: QueryTypes.INSERT,
+                transaction: t
+            }).then((result) => {
+                return db.query('INSERT INTO client_account_info SET?', {
+                    replacements: [accVals],
+                    type: QueryTypes.INSERT,
+                    transaction: t
                 })
+            }).then(() => {
+                return db.query('INSERT INTO client_contact_details SET?', {
+                    replacements: [contactVals],
+                    type: QueryTypes.INSERT,
+                    transaction: t
+                })
+            }).then(() => {
+                return t.commit()
+            }).then(() => {
+                return ''
+            }).catch(error => {
+                t.rollback()
+                throw error
+            })
         },
 
         editClientDetails(_, clientDet, { user, db }) {
-            var trans
 
 
-            trans = db
-            return db.beginTransaction()
-                .then(() => {
-                    return trans.query(`UPDATE client_details SET
+            const t = await db.transaction();
+            return db.query(`UPDATE client_details SET
                 client_id = ?,
                 clientFullname = ?
                 WHERE client_id = ? `,
-                        {
-                            replacements: [clientDet.clientNumber,
-                            clientDet.name, clientDet.clientNumber],
-                            type: QueryTypes.SELECT
-                        }
-                    )
-                }).then((result) => {
-                    console.log(result)
-                    return trans.query(`UPDATE client_account_info SET
+                {
+                    replacements: [clientDet.clientNumber,
+                    clientDet.name, clientDet.clientNumber],
+                    type: QueryTypes.UPDATE,
+                    transaction: t
+                })
+                .then((result) => {
+                    return db.query(`UPDATE client_account_info SET
                 bankID = ?,
                 accountName = ?,
                 bankAccType = ?,
@@ -311,32 +300,34 @@ const resolvers = {
                 biCode = ?
                 WHERE clientID = ?`,
                         {
-                            replacements: [clientDet.bank,
-                            clientDet.bankAccName,
-                            clientDet.bankAccNumber,
-                            clientDet.bankAccType,
-                            clientDet.biCode,
-                            clientDet.clientNumber],
-                            type: QueryTypes.SELECT
+                            replacements: [
+                                clientDet.bank,
+                                clientDet.bankAccName,
+                                clientDet.bankAccNumber,
+                                clientDet.bankAccType,
+                                clientDet.biCode,
+                                clientDet.clientNumber
+                            ],
+                            type: QueryTypes.UPDATE,
+                            transaction: t
                         }
                     )
                 }).then(() => {
-                    return trans.query(`UPDATE client_contact_details SET
+                    return db.query(`UPDATE client_contact_details SET
                 cellphoneNo = ?,
                 email = ?
                 WHERE clientID = ?`,
                         {
                             replacements: [clientDet.cell, clientDet.email, clientDet.clientNumber],
-                            type: QueryTypes.SELECT
+                            type: QueryTypes.UPDATE,
+                            transaction: t
                         })
                 }).then(() => {
-                    return trans.commit()
+                    return t.commit()
                 }).then(() => {
                     return ''
                 }).catch(error => {
-                    if (trans) {
-                        trans.rollback()
-                    }
+                    t.rollback()
                     throw error
                 })
         },
@@ -349,14 +340,14 @@ const resolvers = {
                                 dateOfirstInstallment = :dateOfirstInstallment,
                                 installmentAmount = :installmentAmount,
                                 tracking = :tracking,
-                                installmentDates = :installmentDates`, 
-            {
-                replacements: { ...contractVals },
-                type: QueryTypes.INSERT
-            })
-            .then(() => {
-                return 'Contract created'
-            }).catch(error => { throw error })
+                                installmentDates = :installmentDates`,
+                {
+                    replacements: { ...contractVals },
+                    type: QueryTypes.INSERT
+                })
+                .then(() => {
+                    return 'Contract created'
+                }).catch(error => { throw error })
         },
 
         editContract(_, contractVals, { user, db }) {
@@ -380,10 +371,9 @@ const resolvers = {
                     contractVals.collectionReason,
                     contractVals.contractID
                 ],
-                type: QueryTypes.SELECT
+                type: QueryTypes.UPDATE
             })
                 .then((res) => {
-                    console.log(res)
                     return 'Contract edited'
                 }).catch(error => { throw error })
         },
