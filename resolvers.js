@@ -7,24 +7,26 @@ const { QueryTypes } = require('sequelize');
 
 const resolvers = {
     Query: {
-        businessClients(_, { }, { db }) {
-            return db.query(`SELECT cd.clientFullname, cd.client_id, bai.bankName,ctd.noOfContracts,ctd.sumAmount
-                FROM client_details cd
-                LEFT JOIN client_account_info cai
-                ON cd.client_id = cai.clientID
-                left JOIN (
-                SELECT clientID,COUNT(*) AS noOfContracts,
-                SUM(installmentAmount) AS sumAmount
-                FROM contract_details
-                GROUP BY clientID) ctd
-                ON ctd.clientID=cd.client_id
-                left join bank as bai
-                on cai.bankID = bai.bankID
-                left join
-                business_account AS ba
-                on ba.businessID = cd.businessID
-                where ba.businessID = ?`, {
-                replacements: [6],
+        businessClients(_, { }, { db, user }) {
+            return db.query(`SELECT cd.clientFullname, cd.client_id, ccd.cellphoneNo, ccd.email, bai.bankName, cai.accountName, cai.accountNo, cai.bankAccType, bai.bicCode, ctd.noOfContracts,ctd.sumAmount
+            FROM client_details cd
+            LEFT JOIN client_account_info cai
+            ON cd.client_id = cai.clientID
+            LEFT JOIN client_contact_details ccd
+            ON cai.clientID = ccd.clientID
+            left JOIN (
+            SELECT clientID,COUNT(*) AS noOfContracts,
+            SUM(installmentAmount) AS sumAmount
+            FROM contract_details
+            GROUP BY clientID) ctd
+            ON ctd.clientID=cd.client_id
+            left join bank as bai
+            on cai.bankID = bai.bankID
+            left join
+            business_account AS ba
+            on ba.businessID = cd.businessID
+            where ba.businessID = ?`, {
+                replacements: [user.businessID],
                 type: QueryTypes.SELECT
             })
             .then(result => {
@@ -340,14 +342,21 @@ const resolvers = {
         },
 
         createContract(_, contractVals, { user, db }) {
-
-            return db.query('INSERT INTO contract_details SET ?', {
+            return db.query(`INSERT INTO contract_details SET 
+                                clientID = :clientID,
+                                paymentMethod = :paymentMethod,
+                                noInstallment = :noInstallment,
+                                dateOfirstInstallment = :dateOfirstInstallment,
+                                installmentAmount = :installmentAmount,
+                                tracking = :tracking,
+                                installmentDates = :installmentDates`, 
+            {
                 replacements: { ...contractVals },
                 type: QueryTypes.INSERT
             })
-                .then(() => {
-                    return 'Contract created'
-                }).catch(error => { throw error })
+            .then(() => {
+                return 'Contract created'
+            }).catch(error => { throw error })
         },
 
         editContract(_, contractVals, { user, db }) {
