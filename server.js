@@ -6,35 +6,33 @@ const jsonwt = require('jsonwebtoken');
 const typeDefs = require('./schema')
 const resolvers = require('./resolvers')
 // const JWT_SECRET = require('./constants')
-var mysql = require('promise-mysql')
-const createCsvWriter = require("csv-writer").createObjectCsvWriter
 var cors = require('cors')
 const path = require('path')
 const fs = require('fs')
+const db = require('./config/database')
+const { QueryTypes } = require('sequelize');
 
-console.log(process.env.DB_NAME)
 
-const { Sequelize, Op, Model, DataTypes } = require("sequelize");
+db.authenticate()
+.then(()=>{
+    console.log('Connection has been established successfully.');
+}).catch(()=>{
+    console.error('Unable to connect to the database:', error);
+})
+
 const app = express()
 app.use(cors())
-
 app.use(express.static(path.join(__dirname, 'dist')))
+const dbModel = require('./models/init-models')(db)
 
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASS, {
-    host: process.env.DB_HOST,
-    dialect: 'mysql'
-});
-
-test_conn = async () =>{
-    try {
-        await sequelize.authenticate();
-        console.log('Connection has been established successfully.');
-    } catch (error) {
-        console.error('Unable to connect to the database:', error);
-    }
+async function que () {
+    //  console.log(User)
+    const users = await User.users.findAll();
+    console.log(users.every(user => user instanceof User.users)); // true
+    console.log("All users:", JSON.stringify(users, null, 2));
 }
 
-test_conn()
+
 
 app.get('/downloadCSV', function (req, res) {
 
@@ -48,15 +46,19 @@ app.get('/downloadCSV', function (req, res) {
     var temp_conn
     var bizAccount
     //if pass then connect to database and collect client data for csv
-    return connection.then((conn) => {
-        temp_conn = conn
-        return conn.query(`select accountNo from business_account_info where businessID = ${decodedToken.businessID}`)
-
-    }).then((res) => {
+    dbModel.business_account_info.findAll({
+        attributes: [
+            'accountNo'
+        ],
+        where: {
+            businessID: decodedToken.businessID
+        }
+    })
+   .then((res) => {
 
         bizAccount = res[0].accountNo
 
-        return temp_conn.query(`
+        return db.query(`
         select clientFullname, accountNo, bankAccType, biCode, installmentAmount, contractID, tracking, abbreviatedBusinessName, collectionReason
         from client_details AS cn
         inner join
@@ -68,7 +70,7 @@ app.get('/downloadCSV', function (req, res) {
         inner join
         business_account AS ba
         on ba.businessID = cn.businessID
-        where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment='${req.query.date}'`)
+        where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment='${req.query.date}'`, { type: QueryTypes.SELECT })
     }).then(async (data) => {
         var date = new Date(req.query.date)
         var content = bizAccount + ',,,,,,,\r\n ' + date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + ', \''
@@ -122,7 +124,7 @@ const server = new ApolloServer({
             : req.user
                 ? req.user
                 : null
-        return { user, connection }
+        return { user, db }
     },
 })
 

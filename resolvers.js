@@ -1,15 +1,14 @@
-// const { User } = require("./models");
 var bcrypt = require('bcryptjs');
 const jsonwebtoken = require("jsonwebtoken");
+const { QueryTypes } = require('sequelize');
+
 
 // const JWT_SECRET = require("./constants");
 
 const resolvers = {
     Query: {
-        businessClients(_, { }, { connection, user }) {
-            return connection.then(conn => {
-                
-                return conn.query(`SELECT cd.clientFullname, cd.client_id, bai.bankName,ctd.noOfContracts,ctd.sumAmount
+        businessClients(_, { }, { db, user }) {
+            return db.query(`SELECT cd.clientFullname, cd.client_id, bai.bankName,ctd.noOfContracts,ctd.sumAmount
                 FROM client_details cd
                 LEFT JOIN client_account_info cai
                 ON cd.client_id = cai.clientID
@@ -24,11 +23,15 @@ const resolvers = {
                 left join
                 business_account AS ba
                 on ba.businessID = cd.businessID
-                where ba.businessID = ?`, [user.businessID])
-            }).then(result => {
+                where ba.businessID = ?`, {
+                replacements: [businessID],
+                type: QueryTypes.SELECT
+            })
+            .then(result => {
+                console.log('manage')
                 var list = []
                 result.forEach(el => {
-                    if(!el.noOfContracts){
+                    if (!el.noOfContracts) {
                         el.noOfContracts = 0
                         el.sumAmount = 0
                     }
@@ -37,79 +40,82 @@ const resolvers = {
 
                 return list
             }).catch(error => {
+                console.log(error, ' err')
                 throw error
             })
 
         },
-        getContract(_, { clientID }, { connection, user}) {
-            return connection.then(conn => {
-                return conn.query('SELECT * FROM contract_details WHERE clientID =?', [clientID])
-            }).then(result => {
-                // var list = []
-                // result.forEach(el => {
-                //     list.push({ name: el.clientFullname, id: el.client_id })
-                // })
-                return result
-            }).catch(error => {
-                throw error
+        getContract(_, { clientID }, { db, user }) {
+            return db.query('SELECT * FROM contract_details WHERE clientID =?', {
+                replacements: [clientID],
+                type: QueryTypes.SELECT
             })
+                .then(result => {
+                    return result
+                }).catch(error => {
+                    throw error
+                })
         },
 
         // Please check this one out properly
-        getEditableContract(_, { contractID }, { connection, user}) {
-            return connection.then(conn => {
-                return conn.query('SELECT * FROM contract_details WHERE contractID =?', [contractID])
-            }).then(result => {
-                // var list = []
-                // result.forEach(el => {
-                //     list.push({ name: el.clientFullname, id: el.client_id })
-                // })
-                return result
-            }).catch(error => {
-                throw error
+        getEditableContract(_, { contractID }, { db, user }) {
+            return db.query('SELECT * FROM contract_details WHERE contractID =?', {
+                replacements: [contractID],
+                type: QueryTypes.SELECT
             })
+                .then(result => {
+                    return result
+                }).catch(error => {
+                    throw error
+                })
         },
 
-        getTransactions(_, {start, end}, {connection, user }){
-            return connection.then(conn => {
-                return conn.query(`SELECT * FROM client_details AS cld
+        getTransactions(_, { start, end }, { db, user }) {
+
+            return db.query(`SELECT * FROM client_details AS cld
                 inner join
                 contract_details AS cd
                 on cld.client_id = cd.clientID
                 WHERE (dateOfirstInstallment BETWEEN ? AND ?) 
-                and businessID = ?`, [start, end, user.businessID])
-            }).then(result => {
-                return result
-            }).catch(error => {
-                throw error
+                and businessID = ?`, {
+                replacements: [start, end, user.businessID],
+                type: QueryTypes.SELECT
             })
+                .then(result => {
+                    return result
+                }).catch(error => {
+                    throw error
+                })
         },
 
     },
 
     Mutation: {
-        register(_, { username, password, email }, { connection }) {
+        register(_, { username, password, email }, { db }) {
             var hash = bcrypt.hashSync(password, 12);
             vals = { username, email, password: hash, roleID: 2 }
 
-            return connection.then(conn => {
-                return conn.query('INSERT INTO users SET ?', vals)
-            }).then(result => {
-                return jsonwebtoken.sign({ userID: result.insertId }, "JWT_SECRET", {
-                    expiresIn: "1d",
-                })
-            }).catch(error => {
-                throw error
+            return db.query('INSERT INTO users SET ?', {
+                replacements: [vals],
+                type: QueryTypes.SELECT
             })
+                .then(result => {
+                    return jsonwebtoken.sign({ userID: result.insertId }, "JWT_SECRET", {
+                        expiresIn: "1d",
+                    })
+                }).catch(error => {
+                    throw error
+                })
         },
 
-        login(_, { username, password }, { connection }) {
+        login(_, { username, password }, { db }) {
             var temp_userID
-            var temp_conn
-            return connection.then(conn => {
-                temp_conn = conn
-                return conn.query('SELECT userID, username, password FROM users WHERE username=?', [username])
-            }).then((res) => {
+
+            return db.query('SELECT userID, username, password FROM users WHERE username=?', {
+                replacements: [username],
+                type: QueryTypes.SELECT
+            })
+            .then((res) => {
                 if (!res.length) {
                     throw new Error(
                         "This user doesn't exist."
@@ -117,35 +123,38 @@ const resolvers = {
                 }
                 return res[0]
             })
-                .then(res => {
-                    temp_userID = res.userID
-                    return bcrypt.compare(password, res.password)
+            .then(res => {
+                temp_userID = res.userID
+                return bcrypt.compare(password, res.password)
+            })
+            .then(res => {
+                if (!res) {
+                    throw new Error("Your password is incorrect!");
+                }
+                return db.query('SELECT businessName, businessID FROM business_account WHERE userID=?', {
+                    replacements: [temp_userID],
+                    type: QueryTypes.SELECT
                 })
-                .then(res => {
-                    if (!res) {
-                        throw new Error("Your password is incorrect!");
-                    }
-                    return temp_conn.query('SELECT businessName, businessID FROM business_account WHERE userID=?', [temp_userID])
-                }).then(res => {
+            }).then(res => {
 
-                    if (!res.length) {
-                        return {
-                            token: jsonwebtoken.sign({ userID: temp_userID }, "JWT_SECRET", { expiresIn: "1d" }),
-                            businessName: null
-                        }
-                    }
-
+                if (!res.length) {
                     return {
-                        token: jsonwebtoken.sign({ userID: temp_userID, businessID : res[0].businessID }, "JWT_SECRET", { expiresIn: "1d" }),
-                        businessName: res[0].businessName
+                        token: jsonwebtoken.sign({ userID: temp_userID }, "JWT_SECRET", { expiresIn: "1d" }),
+                        businessName: null
                     }
+                }
 
-                }).catch(err => {
-                    throw err
-                })
+                return {
+                    token: jsonwebtoken.sign({ userID: temp_userID, businessID: res[0].businessID }, "JWT_SECRET", { expiresIn: "1d" }),
+                    businessName: res[0].businessName
+                }
+
+            }).catch(err => {
+                throw err
+            })
         },
 
-        registerBusiness(_, regInfo, { user, connection }) {
+        registerBusiness(_, regInfo, { user, db }) {
             bizVals = {
                 userID: user.userID,
                 businessName: regInfo.name,
@@ -174,36 +183,48 @@ const resolvers = {
             }
 
             var trans
-            return connection.then(conn => {
-                trans = conn
-                return conn.beginTransaction()
-            }).then(() => {
-                return trans.query('INSERT INTO business_account SET?', [bizVals])
-            }).then((result) => {
-                contactVals.businessID = result.insertId
-                addrVals.businessID = result.insertId
-                accVals.businessID = result.insertId
-                return trans.query('INSERT INTO business_contact_details SET?', [contactVals])
-            }).then(() => {
-                return trans.query('INSERT INTO address SET?', [addrVals])
-            }).then(() => {
-                return trans.query('INSERT INTO business_account_info SET?', [accVals])
-            }).then(() => {
-                return trans.commit()
-            }).then(() => {
-                return jsonwebtoken.sign({ userID: user.userID, businessID: contactVals.businessID }, "JWT_SECRET", {
-                    expiresIn: "1d",
+
+            trans = db
+            return db.beginTransaction()
+                .then(() => {
+                    return trans.query('INSERT INTO business_account SET?', {
+                        replacements: [bizVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then((result) => {
+                    contactVals.businessID = result.insertId
+                    addrVals.businessID = result.insertId
+                    accVals.businessID = result.insertId
+                    return trans.query('INSERT INTO business_contact_details SET?', {
+                        replacements: [contactVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then(() => {
+                    return trans.query('INSERT INTO address SET?', {
+                        replacements: [addrVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then(() => {
+                    return trans.query('INSERT INTO business_account_info SET?', {
+                        replacements: [accVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then(() => {
+                    return trans.commit()
+                }).then(() => {
+                    return jsonwebtoken.sign({ userID: user.userID, businessID: contactVals.businessID }, "JWT_SECRET", {
+                        expiresIn: "1d",
+                    })
+                }).catch(error => {
+                    console.log(error, 'err')
+                    if (trans) {
+                        trans.rollback()
+                    }
+                    throw error
                 })
-            }).catch(error => {
-                console.log(error, 'err')
-                if (trans) {
-                    trans.rollback()
-                }
-                throw error
-            })
         },
 
-        createClient(_, clientDet, { user, connection }) {
+        createClient(_, clientDet, { user, db }) {
             var trans
 
             //client general details
@@ -230,85 +251,108 @@ const resolvers = {
                 cellphoneNo: clientDet.cell
             }
 
-            return connection.then(conn => {
-                trans = conn
-                return conn.beginTransaction()
-            }).then(() => {
-                return trans.query('INSERT INTO client_details SET?', [detVals])
-            }).then((result) => {
-                console.log(result)
-                return trans.query('INSERT INTO client_account_info SET?', [accVals])
-            }).then(() => {
-                return trans.query('INSERT INTO client_contact_details SET?', [contactVals])
-            }).then(() => {
-                return trans.commit()
-            }).then(() => {
-                return ''
-            }).catch(error => {
-                if (trans) {
-                    trans.rollback()
-                }
-                throw error
-            })
+
+            trans = db
+            return db.beginTransaction()
+                .then(() => {
+                    return trans.query('INSERT INTO client_details SET?', {
+                        replacements: [detVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then((result) => {
+                    console.log(result)
+                    return trans.query('INSERT INTO client_account_info SET?', {
+                        replacements: [accVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then(() => {
+                    return trans.query('INSERT INTO client_contact_details SET?', {
+                        replacements: [contactVals],
+                        type: QueryTypes.INSERT
+                    })
+                }).then(() => {
+                    return trans.commit()
+                }).then(() => {
+                    return ''
+                }).catch(error => {
+                    if (trans) {
+                        trans.rollback()
+                    }
+                    throw error
+                })
         },
 
-        editClientDetails(_, clientDet, { user, connection }) {
+        editClientDetails(_, clientDet, { user, db }) {
             var trans
 
-            return connection.then(conn => {
-                trans = conn
-                return conn.beginTransaction()
-            }).then(() => {
-                return trans.query(`UPDATE client_details SET
+
+            trans = db
+            return db.beginTransaction()
+                .then(() => {
+                    return trans.query(`UPDATE client_details SET
                 client_id = ?,
                 clientFullname = ?
                 WHERE client_id = ? `,
-                [clientDet.clientNumber,
-                clientDet.name, clientDet.clientNumber])
-            }).then((result) => {
-                console.log(result)
-                return trans.query(`UPDATE client_account_info SET
+                        {
+                            replacements: [clientDet.clientNumber,
+                            clientDet.name, clientDet.clientNumber],
+                            type: QueryTypes.SELECT
+                        }
+                    )
+                }).then((result) => {
+                    console.log(result)
+                    return trans.query(`UPDATE client_account_info SET
                 bankID = ?,
                 accountName = ?,
                 bankAccType = ?,
                 accountNo = ?,
                 biCode = ?
                 WHERE clientID = ?`,
-                [clientDet.bank,
-                clientDet.bankAccName,
-                clientDet.bankAccNumber,
-                clientDet.bankAccType,
-                clientDet.biCode,
-                clientDet.clientNumber])
-            }).then(() => {
-                return trans.query(`UPDATE client_contact_details SET
+                        {
+                            replacements: [clientDet.bank,
+                            clientDet.bankAccName,
+                            clientDet.bankAccNumber,
+                            clientDet.bankAccType,
+                            clientDet.biCode,
+                            clientDet.clientNumber],
+                            type: QueryTypes.SELECT
+                        }
+                    )
+                }).then(() => {
+                    return trans.query(`UPDATE client_contact_details SET
                 cellphoneNo = ?,
                 email = ?
-                WHERE clientID = ?`, 
-                [clientDet.cell, clientDet.email, clientDet.clientNumber])
-            }).then(() => {
-                return trans.commit()
-            }).then(() => {
-                return ''
-            }).catch(error => {
-                if (trans) {
-                    trans.rollback()
-                }
-                throw error
+                WHERE clientID = ?`,
+                        {
+                            replacements: [clientDet.cell, clientDet.email, clientDet.clientNumber],
+                            type: QueryTypes.SELECT
+                        })
+                }).then(() => {
+                    return trans.commit()
+                }).then(() => {
+                    return ''
+                }).catch(error => {
+                    if (trans) {
+                        trans.rollback()
+                    }
+                    throw error
+                })
+        },
+
+        createContract(_, contractVals, { user, db }) {
+
+            return db.query('INSERT INTO contract_details SET ?', {
+                replacements: { ...contractVals },
+                type: QueryTypes.INSERT
             })
+                .then(() => {
+                    return 'Contract created'
+                }).catch(error => { throw error })
         },
 
-        createContract(_, contractVals, { user, connection }) {
-            return connection.then(conn => {
-                return conn.query('INSERT INTO contract_details SET ?', { ...contractVals })
-            }).then(() => {
-                return 'Contract created'
-            }).catch(error => { throw error })
-        },
+        editContract(_, contractVals, { user, db }) {
 
-        editContract(_, contractVals, { user, connection }) {
-            return connection.then(conn => {
-                return conn.query(`UPDATE contract_details
+            return db.query(`UPDATE contract_details
                 SET paymentMethod = ?,
                     installmentAmount = ?,
                     installmentDates = ?,
@@ -316,20 +360,23 @@ const resolvers = {
                     dateOfirstInstallment = ?,
                     tracking = ?,
                     collectionReason = ?
-                WHERE contractID = ?`, [
+                WHERE contractID = ?`, {
+                replacements: [
                     contractVals.paymentMethod,
-                    contractVals.installmentAmount, 
+                    contractVals.installmentAmount,
                     contractVals.installmentDates,
                     contractVals.noInstallment,
                     contractVals.dateOfirstInstallment,
                     contractVals.tracking,
                     contractVals.collectionReason,
                     contractVals.contractID
-                ]) 
-            }).then((res) => {
-                console.log(res)
-                return 'Contract edited'
-            }).catch(error => { throw error })
+                ],
+                type: QueryTypes.SELECT
+            })
+                .then((res) => {
+                    console.log(res)
+                    return 'Contract edited'
+                }).catch(error => { throw error })
         },
     }
 }

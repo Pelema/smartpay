@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('contract_details', {
     clientID: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(50),
       allowNull: false
     },
     contractID: {
@@ -50,13 +50,6 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "contractID" },
-        ]
-      },
-      {
-        name: "fk_contract_details_client_details1_idx",
-        using: "BTREE",
-        fields: [
-          { name: "clientID" },
         ]
       },
     ]
