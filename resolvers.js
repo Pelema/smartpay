@@ -36,7 +36,10 @@ const resolvers = {
                             el.noOfContracts = 0
                             el.sumAmount = 0
                         }
-                        list.push({ name: el.clientFullname, id: el.client_id, bankName: el.bankName, noContract: el.noOfContracts, installmentAmount: el.sumAmount })
+                        list.push({ name: el.clientFullname, id: el.client_id, cell: el.cellphoneNo, email: el.email, 
+                                    bankName: el.bankName, bankAccName: el.accountName, bankAccNumber: el.accountNo, 
+                                    bankAccType: el.bankAccType, biCode: el.bicCode, noContract: el.noOfContracts, 
+                                    installmentAmount: el.sumAmount })
                     })
 
                     return list
@@ -47,7 +50,7 @@ const resolvers = {
         },
         getContract(_, { clientID }, { db, user }) {
             return db.query('SELECT * FROM contract_details WHERE clientID =?', {
-                replacements: [clientID],
+                replacements: [clientID+''],
                 type: QueryTypes.SELECT
             })
             .then(result => {
@@ -57,7 +60,6 @@ const resolvers = {
             })
         },
 
-        // Please check this one out properly
         getEditableContract(_, { contractID }, { db, user }) {
             return db.query('SELECT * FROM contract_details WHERE contractID =?', {
                 replacements: [contractID],
@@ -375,6 +377,24 @@ const resolvers = {
             })
                 .then((res) => {
                     return 'Contract edited'
+                }).catch(error => { throw error })
+        },
+
+        // Check this one carefully please
+        deleteContract(_, {contractID}, { user, db }) {
+
+            return db.query(`DELETE FROM contract_details where contractID = ?`, {
+                replacements: [contractID],
+                type: QueryTypes.DELETE
+            })
+                .then((res) => {
+                    if(res.affectedRows == 1)
+                        return 'Contract deleted'
+                        {
+                            throw new Error(
+                                "Contract could not be deleted, Something went wrong"
+                            )
+                        }
                 }).catch(error => { throw error })
         },
     }
