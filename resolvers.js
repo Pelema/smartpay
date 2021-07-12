@@ -108,7 +108,7 @@ const resolvers = {
                 })
         },
 
-        login(_, { username, password }, { db }) {
+        async login(_, { username, password }, { db }) {
             var temp_userID
             const t = await db.transaction();
             return db.query('SELECT userID, username, password FROM users WHERE username=?', {
@@ -156,7 +156,7 @@ const resolvers = {
                 })
         },
 
-        registerBusiness(_, regInfo, { user, db }) {
+        async registerBusiness(_, regInfo, { user, db }) {
             bizVals = {
                 userID: user.userID,
                 businessName: regInfo.name,
@@ -223,7 +223,7 @@ const resolvers = {
             })
         },
 
-        createClient(_, clientDet, { user, db }) {
+        async createClient(_, clientDet, { user, db }) {
 
             //client general details
             detVals = {
@@ -277,7 +277,7 @@ const resolvers = {
             })
         },
 
-        editClientDetails(_, clientDet, { user, db }) {
+        async editClientDetails(_, clientDet, { user, db }) {
 
 
             const t = await db.transaction();
