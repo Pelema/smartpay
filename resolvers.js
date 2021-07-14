@@ -159,57 +159,65 @@ const resolvers = {
         },
 
         async registerBusiness(_, regInfo, { user, db }) {
-            bizVals = {
-                userID: user.userID,
-                businessName: regInfo.name,
-                businessRegistrationNumber: regInfo.regNumber,
-                abbreviatedBusinessName: regInfo.bizAbbr
-            }
-
-            contactVals = {
-                businessID: null,
-                cellphoneNo: regInfo.cell,
-                email: regInfo.bizEmail,
-            }
-
-            addrVals = {
-                location: regInfo.address,
-                postalAddress: regInfo.postalAddr,
-                businessID: null
-            }
-
-            accVals = {
-                bankID: 3,
-                businessID: null,
-                accountName: regInfo.bankAccName,
-                bankAccType: regInfo.bankAccType,
-                accountNo: regInfo.bankAccNumber
-            }
 
             const t = await db.transaction();
 
-            return db.query('INSERT INTO business_account SET?', {
-                replacements: [bizVals],
+            return db.query(`INSERT INTO business_account 
+                             SET userID = :userID, 
+                             businessName = :businessName, 
+                             businessRegistrationNumber = :businessRegistrationNumber, 
+                             abbreviatedBusinessName = :abbreviatedBusinessName`, {
+                replacements: {
+                    userID: user.userID,
+                    businessName: regInfo.name,
+                    businessRegistrationNumber: regInfo.regNumber,
+                    abbreviatedBusinessName: regInfo.bizAbbr
+                },
                 type: QueryTypes.INSERT,
                 transaction: t
             }).then((result) => {
                 contactVals.businessID = result.insertId
                 addrVals.businessID = result.insertId
                 accVals.businessID = result.insertId
-                return db.query('INSERT INTO business_contact_details SET?', {
-                    replacements: [contactVals],
+                return db.query(`INSERT INTO business_contact_details 
+                                 SET businessID = :businessID, 
+                                 cellphoneNo = :cellphoneNo,
+                                 email = :email`, {
+                    replacements: {
+                        businessID: null,
+                        cellphoneNo: regInfo.cell,
+                        email: regInfo.bizEmail
+                    },
                     type: QueryTypes.INSERT,
                     transaction: t
                 })
             }).then(() => {
-                return db.query('INSERT INTO address SET?', {
-                    replacements: [addrVals],
+                return db.query(`INSERT INTO address 
+                                 SET location = :location,
+                                 postalAddress = :postalAddress,
+                                 businessID = :businessID`, {
+                    replacements: {
+                        location: regInfo.address,
+                        postalAddress: regInfo.postalAddr,
+                        businessID: null
+                    },
                     type: QueryTypes.INSERT,
                     transaction: t
                 })
             }).then(() => {
-                return db.query('INSERT INTO business_account_info SET?', {
-                    replacements: [accVals],
+                return db.query(`INSERT INTO business_account_info 
+                                 SET bankID = :bankID, 
+                                 businessID = :businessID, 
+                                 accountName = :accountName, 
+                                 bankAccType = :bankAccType, 
+                                 accountNo = :accountNo`, {
+                    replacements: {
+                        bankID: 3,
+                        businessID: null,
+                        accountName: regInfo.bankAccName,
+                        bankAccType: regInfo.bankAccType,
+                        accountNo: regInfo.bankAccNumber
+                    },
                     type: QueryTypes.INSERT,
                     transaction: t
                 })
