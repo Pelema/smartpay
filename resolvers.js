@@ -253,19 +253,19 @@ const resolvers = {
 
             const t = await db.transaction();
 
-            return db.query('INSERT INTO client_details SET?', {
-                replacements: [detVals],
+            return db.query('INSERT INTO client_details SET clientFullname = :clientFullname, businessID = :businessID, client_id = :client_id', {
+                replacements: {...detVals},
                 type: QueryTypes.INSERT,
                 transaction: t
             }).then((result) => {
-                return db.query('INSERT INTO client_account_info SET?', {
-                    replacements: [accVals],
+                return db.query('INSERT INTO client_account_info SET clientID = :clientID, accountName = :accountName, bankAccType = :bankAccType, accountNo = :accountNo, biCode = :biCode, bankID = :bankID', {
+                    replacements: {...accVals},
                     type: QueryTypes.INSERT,
                     transaction: t
                 })
             }).then(() => {
-                return db.query('INSERT INTO client_contact_details SET?', {
-                    replacements: [contactVals],
+                return db.query('INSERT INTO client_contact_details SET clientID = :clientID, email = :email, cellphoneNo = :cellphoneNo', {
+                    replacements: {...contactVals},
                     type: QueryTypes.INSERT,
                     transaction: t
                 })
