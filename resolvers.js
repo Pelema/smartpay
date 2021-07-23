@@ -8,7 +8,7 @@ const { QueryTypes } = require('sequelize');
 const resolvers = {
     Query: {
         businessClients(_, { }, { db, user }) {
-            return db.query(`SELECT cd.clientFullname, cd.client_id, ccd.cellphoneNo, ccd.email, bai.bankName, cai.accountName, cai.accountNo, cai.bankAccType, bai.bicCode, ctd.noOfContracts,ctd.sumAmount
+            return db.query(`SELECT distinct cd.clientFullname, cd.client_id, ccd.cellphoneNo, ccd.email, bai.bankName, cai.accountName, cai.accountNo, cai.bankAccType, bai.bicCode, ctd.noOfContracts,ctd.sumAmount
             FROM client_details cd
             LEFT JOIN client_account_info cai
             ON cd.client_id = cai.clientID
