@@ -3,7 +3,11 @@ module.exports = function(sequelize, DataTypes) {
   return sequelize.define('contract_details', {
     clientID: {
       type: DataTypes.STRING(50),
-      allowNull: false
+      allowNull: false,
+      references: {
+        model: 'client_details',
+        key: 'client_id'
+      }
     },
     contractID: {
       autoIncrement: true,
@@ -50,6 +54,13 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "contractID" },
+        ]
+      },
+      {
+        name: "clientID_idx",
+        using: "BTREE",
+        fields: [
+          { name: "clientID" },
         ]
       },
     ]

@@ -3,7 +3,19 @@ module.exports = function(sequelize, DataTypes) {
   return sequelize.define('client_account_info', {
     clientID: {
       type: DataTypes.STRING(50),
-      allowNull: false
+      allowNull: false,
+      references: {
+        model: 'client_details',
+        key: 'client_id'
+      }
+    },
+    client_details_client_id: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      references: {
+        model: 'client_details',
+        key: 'client_id'
+      }
     },
     bankID: {
       type: DataTypes.INTEGER,
@@ -60,6 +72,13 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "clientID" },
+        ]
+      },
+      {
+        name: "fk_client_account_info_client_details1_idx",
+        using: "BTREE",
+        fields: [
+          { name: "client_details_client_id" },
         ]
       },
     ]

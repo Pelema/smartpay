@@ -9,8 +9,6 @@ var _client_account_info = require("./client_account_info");
 var _client_contact_details = require("./client_contact_details");
 var _client_details = require("./client_details");
 var _contract_details = require("./contract_details");
-var _events_for_debit = require("./events_for_debit");
-var _events_meta = require("./events_meta");
 var _roles = require("./roles");
 var _users = require("./users");
 
@@ -25,8 +23,6 @@ function initModels(sequelize) {
   var client_contact_details = _client_contact_details(sequelize, DataTypes);
   var client_details = _client_details(sequelize, DataTypes);
   var contract_details = _contract_details(sequelize, DataTypes);
-  var events_for_debit = _events_for_debit(sequelize, DataTypes);
-  var events_meta = _events_meta(sequelize, DataTypes);
   var roles = _roles(sequelize, DataTypes);
   var users = _users(sequelize, DataTypes);
 
@@ -42,6 +38,16 @@ function initModels(sequelize) {
   business_account.hasMany(business_contact_details, { as: "business_contact_details", foreignKey: "businessID"});
   client_details.belongsTo(business_account, { as: "business", foreignKey: "businessID"});
   business_account.hasMany(client_details, { as: "client_details", foreignKey: "businessID"});
+  client_account_info.belongsTo(client_details, { as: "client_details_client", foreignKey: "client_details_client_id"});
+  client_details.hasMany(client_account_info, { as: "client_account_infos", foreignKey: "client_details_client_id"});
+  client_account_info.belongsTo(client_details, { as: "client", foreignKey: "clientID"});
+  client_details.hasMany(client_account_info, { as: "client_client_account_infos", foreignKey: "clientID"});
+  client_contact_details.belongsTo(client_details, { as: "client", foreignKey: "clientID"});
+  client_details.hasOne(client_contact_details, { as: "client_contact_detail", foreignKey: "clientID"});
+  client_contact_details.belongsTo(client_details, { as: "client_details_client", foreignKey: "client_details_client_id"});
+  client_details.hasMany(client_contact_details, { as: "client_details_client_client_contact_details", foreignKey: "client_details_client_id"});
+  contract_details.belongsTo(client_details, { as: "client", foreignKey: "clientID"});
+  client_details.hasMany(contract_details, { as: "contract_details", foreignKey: "clientID"});
   users.belongsTo(roles, { as: "role", foreignKey: "roleID"});
   roles.hasMany(users, { as: "users", foreignKey: "roleID"});
   admins.belongsTo(users, { as: "user", foreignKey: "userID"});
@@ -60,8 +66,6 @@ function initModels(sequelize) {
     client_contact_details,
     client_details,
     contract_details,
-    events_for_debit,
-    events_meta,
     roles,
     users,
   };
