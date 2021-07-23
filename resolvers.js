@@ -235,49 +235,47 @@ const resolvers = {
 
         async createClient(_, clientDet, { user, db }) {
 
-            return db.transaction((t)=>{
-                return db.query('INSERT INTO client_details SET clientFullname = :clientFullname, businessID = :businessID, client_id = :client_id', {
+            const t = await db.transaction();
+
+            return db.query('INSERT INTO client_details SET clientFullname = :clientFullname, businessID = :businessID, client_id = :client_id', {
+                replacements: {
+                    clientFullname: clientDet.name,
+                    businessID: user.businessID,
+                    client_id: clientDet.clientNumber
+                },
+                type: QueryTypes.INSERT,
+                transaction: t
+            }).then((result) => {
+                return db.query('INSERT INTO client_account_info SET clientID = :clientID, accountName = :accountName, bankAccType = :bankAccType, accountNo = :accountNo, biCode = :biCode, bankID = :bankID', {
                     replacements: {
-                        clientFullname: clientDet.name,
-                        businessID: user.businessID,
-                        client_id: clientDet.clientNumber
+                        clientID: clientDet.clientNumber,
+                        accountName: clientDet.bankAccName,
+                        bankAccType: clientDet.bankAccType,
+                        accountNo: clientDet.bankAccNumber,
+                        biCode: clientDet.biCode,
+                        bankID: clientDet.bank
                     },
                     type: QueryTypes.INSERT,
                     transaction: t
-                }).then((result) => {
-                    return db.query('INSERT INTO client_account_info SET clientID = :clientID, accountName = :accountName, bankAccType = :bankAccType, accountNo = :accountNo, biCode = :biCode, bankID = :bankID', {
-                        replacements: {
-                            clientID: clientDet.clientNumber,
-                            accountName: clientDet.bankAccName,
-                            bankAccType: clientDet.bankAccType,
-                            accountNo: clientDet.bankAccNumber,
-                            biCode: clientDet.biCode,
-                            bankID: clientDet.bank
-                        },
-                        type: QueryTypes.INSERT,
-                        transaction: t
-                    })
-                }).then(() => {
-                    return db.query('INSERT INTO client_contact_details SET clientID = :clientID, email = :email, cellphoneNo = :cellphoneNo', {
-                        replacements: {
-                            clientID: clientDet.clientNumber,
-                            email: clientDet.email,
-                            cellphoneNo: clientDet.cell
-                        },
-                        type: QueryTypes.INSERT,
-                        transaction: t
-                    })
-                }).then(() => {
-                    return t.commit()
-                }).then(() => {
-                    return ''
-                }).catch(error => {
-                    t.rollback()
-                    throw error
                 })
+            }).then(() => {
+                return db.query('INSERT INTO client_contact_details SET clientID = :clientID, email = :email, cellphoneNo = :cellphoneNo', {
+                    replacements: {
+                        clientID: clientDet.clientNumber,
+                        email: clientDet.email,
+                        cellphoneNo: clientDet.cell
+                    },
+                    type: QueryTypes.INSERT,
+                    transaction: t
+                })
+            }).then(() => {
+                return t.commit()
+            }).then(() => {
+                return ''
+            }).catch(error => {
+                t.rollback()
+                throw error
             })
-
-            
         },
 
         async editClientDetails(_, clientDet, { user, db }) {
