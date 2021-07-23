@@ -258,6 +258,8 @@ const resolvers = {
                     type: QueryTypes.INSERT,
                     transaction: t
                 })
+            }).then(()=>{
+                return t.commit()
             }).then(() => {
                 return db.query('INSERT INTO client_contact_details SET clientID = :clientID, email = :email, cellphoneNo = :cellphoneNo', {
                     replacements: {
