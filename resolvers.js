@@ -95,13 +95,13 @@ const resolvers = {
     Mutation: {
         register(_, { username, password, email }, { db }) {
             var hash = bcrypt.hashSync(password, 12);
-            vals = { username, email, password: hash, roleID: 2 }
-
-            return db.query('INSERT INTO users SET ?', {
-                replacements: [vals],
+            console.log("phase1")
+            return db.query('INSERT INTO users SET username = :username, password = :password, email = :email, roleID = :roleID', {
+                replacements: { username, email, password: hash, roleID: 2 },
                 type: QueryTypes.INSERT
             })
                 .then(result => {
+                    console.log("phase2")
                     return jsonwebtoken.sign({ userID: result.insertId }, "JWT_SECRET", {
                         expiresIn: "1d",
                     })
