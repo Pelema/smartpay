@@ -77,9 +77,17 @@ app.get('/downloadCSV', function (req, res) {
         var contentBody = '\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
 
         var clientSum = 0
+        var bankAccType = ''
         data.forEach(row => {
             clientSum += parseInt(row.accountNo)
-            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + row.bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
+            if(row.bankAccType == 'CHECQUE'){
+                bankAccType = 1
+            }else if(row.bankAccType == 'SAVINGS'){
+                bankAccType = 2
+            }else if(row.bankAccType == 'TRANSMISSION'){
+                bankAccType = 3
+            }
+            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
         })
 
 
