@@ -15,6 +15,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
+    manuelContractID: {
+      type: DataTypes.STRING(45),
+      allowNull: true,
+      unique: "manuelContractID_UNIQUE"
+    },
     paymentMethod: {
       type: DataTypes.STRING(150),
       allowNull: false
@@ -54,6 +59,14 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "contractID" },
+        ]
+      },
+      {
+        name: "manuelContractID_UNIQUE",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "manuelContractID" },
         ]
       },
       {

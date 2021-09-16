@@ -54,6 +54,7 @@ const resolvers = {
                 type: QueryTypes.SELECT
             })
             .then(result => {
+                console.log(result, " ##########")
                 return result
             }).catch(error => {
                 throw error
@@ -341,7 +342,8 @@ const resolvers = {
                                 dateOfirstInstallment = :dateOfirstInstallment,
                                 installmentAmount = :installmentAmount,
                                 tracking = :tracking,
-                                installmentDates = :installmentDates`,
+                                installmentDates = :installmentDates,
+                                manualContractID = :manualContractID`,
                 {
                     replacements: { ...contractVals },
                     type: QueryTypes.INSERT
@@ -360,7 +362,8 @@ const resolvers = {
                     noInstallment = ?,
                     dateOfirstInstallment = ?,
                     tracking = ?,
-                    collectionReason = ?
+                    collectionReason = ?,
+                    manualContractID = ?
                 WHERE contractID = ?`, {
                 replacements: [
                     contractVals.paymentMethod,
@@ -370,6 +373,7 @@ const resolvers = {
                     contractVals.dateOfirstInstallment,
                     contractVals.tracking,
                     contractVals.collectionReason,
+                    contractVals.manualContractID,
                     contractVals.contractID
                 ],
                 type: QueryTypes.UPDATE

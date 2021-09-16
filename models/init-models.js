@@ -38,14 +38,10 @@ function initModels(sequelize) {
   business_account.hasMany(business_contact_details, { as: "business_contact_details", foreignKey: "businessID"});
   client_details.belongsTo(business_account, { as: "business", foreignKey: "businessID"});
   business_account.hasMany(client_details, { as: "client_details", foreignKey: "businessID"});
-  client_account_info.belongsTo(client_details, { as: "client_details_client", foreignKey: "client_details_client_id"});
-  client_details.hasMany(client_account_info, { as: "client_account_infos", foreignKey: "client_details_client_id"});
   client_account_info.belongsTo(client_details, { as: "client", foreignKey: "clientID"});
-  client_details.hasMany(client_account_info, { as: "client_client_account_infos", foreignKey: "clientID"});
+  client_details.hasMany(client_account_info, { as: "client_account_infos", foreignKey: "clientID"});
   client_contact_details.belongsTo(client_details, { as: "client", foreignKey: "clientID"});
-  client_details.hasOne(client_contact_details, { as: "client_contact_detail", foreignKey: "clientID"});
-  client_contact_details.belongsTo(client_details, { as: "client_details_client", foreignKey: "client_details_client_id"});
-  client_details.hasMany(client_contact_details, { as: "client_details_client_client_contact_details", foreignKey: "client_details_client_id"});
+  client_details.hasMany(client_contact_details, { as: "client_contact_details", foreignKey: "clientID"});
   contract_details.belongsTo(client_details, { as: "client", foreignKey: "clientID"});
   client_details.hasMany(contract_details, { as: "contract_details", foreignKey: "clientID"});
   users.belongsTo(roles, { as: "role", foreignKey: "roleID"});

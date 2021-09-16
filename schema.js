@@ -40,6 +40,7 @@ const typeDefs = gql`
         tracking: String!
         installmentDates: String!
         collectionReason: String!
+        manualContractID: String
         contractID: String
     }
 
@@ -133,7 +134,8 @@ const typeDefs = gql`
             installmentAmount: Float!,
             tracking: String!,
             installmentDates: String!,
-            collectionReason: String!
+            collectionReason: String!,
+            manualContractID: String!
         ): String
 
         editContract(
@@ -144,7 +146,8 @@ const typeDefs = gql`
             installmentAmount: Float!,
             tracking: String!,
             installmentDates: String!,
-            collectionReason: String!
+            collectionReason: String!,
+            manualContractID: String!
         ): String
 
         deleteContract(

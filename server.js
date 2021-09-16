@@ -59,7 +59,7 @@ app.get('/downloadCSV', function (req, res) {
         bizAccount = res[0].accountNo
 
         return db.query(`
-        select clientFullname, accountNo, bankAccType, biCode, installmentAmount, contractID, tracking, abbreviatedBusinessName, collectionReason
+        select clientFullname, accountNo, manualContractID, bankAccType, biCode, installmentAmount, contractID, tracking, abbreviatedBusinessName, collectionReason
         from client_details AS cn
         inner join
         client_account_info AS cai
@@ -74,7 +74,7 @@ app.get('/downloadCSV', function (req, res) {
     }).then(async (data) => {
         var date = new Date(req.query.date)
         var content = bizAccount + ',,,,,,,\r\n ' + date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear() + ', \''
-        var contentBody = '\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
+        var contentBody = '\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE, MANUAL CONTRACT ID,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n'
 
         var clientSum = 0
         var bankAccType = ''
@@ -87,7 +87,7 @@ app.get('/downloadCSV', function (req, res) {
             }else if(row.bankAccType == 'TRANSMISSION'){
                 bankAccType = 3
             }
-            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.tracking + ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
+            contentBody += (row.clientFullname + ',' + row.accountNo + ',' + bankAccType + ',' + row.biCode + ',' + row.installmentAmount + ',' + row.contractID + ',' + row.manualContractID + ',' + row.tracking + ',' + row.abbreviatedBusinessName + ',' + row.collectionReason + '\r\n')
         })
 
 

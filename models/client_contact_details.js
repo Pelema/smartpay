@@ -4,15 +4,7 @@ module.exports = function(sequelize, DataTypes) {
     clientID: {
       type: DataTypes.STRING(50),
       allowNull: false,
-      references: {
-        model: 'client_details',
-        key: 'client_id'
-      },
-      unique: "fk_client_id_contact_details"
-    },
-    client_details_client_id: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
+      primaryKey: true,
       references: {
         model: 'client_details',
         key: 'client_id'
@@ -51,6 +43,7 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "clientContactID" },
+          { name: "clientID" },
         ]
       },
       {
@@ -66,13 +59,6 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "clientID" },
-        ]
-      },
-      {
-        name: "fk_client_contact_details_client_details1_idx",
-        using: "BTREE",
-        fields: [
-          { name: "client_details_client_id" },
         ]
       },
     ]
