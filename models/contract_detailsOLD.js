@@ -1,13 +1,9 @@
 const Sequelize = require('sequelize');
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('contract_details', {
+  return sequelize.define('contract_detailsOLD', {
     clientID: {
       type: DataTypes.STRING(50),
-      allowNull: false,
-      references: {
-        model: 'client_details',
-        key: 'client_id'
-      }
+      allowNull: false
     },
     contractID: {
       autoIncrement: true,
@@ -50,7 +46,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   }, {
     sequelize,
-    tableName: 'contract_details',
+    tableName: 'contract_detailsOLD',
     timestamps: false,
     indexes: [
       {
@@ -67,13 +63,6 @@ module.exports = function(sequelize, DataTypes) {
         using: "BTREE",
         fields: [
           { name: "manualContractID" },
-        ]
-      },
-      {
-        name: "fk_clientdetails_contractdetails_clientID_idx",
-        using: "BTREE",
-        fields: [
-          { name: "clientID" },
         ]
       },
     ]
