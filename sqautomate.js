@@ -1,1 +1,1 @@
-sequelize-auto -h 'db-mysql-nyc3-34732-smartpaydb-do-user-11131132-0.b.db.ondigitalocean.com' -d 'smartstore' -u 'admin' -x 'vut3gNNH2GRejq82' -p 25060  --dialect 'mysql' -o './models'
+sequelize-auto -h 'db-mysql-nyc3-34732-smartpaydb-do-user-11131132-0.b.db.ondigitalocean.com' -d 'smartpaydb' -u 'admin' -x 'vut3gNNH2GRejq82' -p 25060  --dialect 'mysql' -o './models'
