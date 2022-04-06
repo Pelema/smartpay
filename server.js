@@ -138,6 +138,54 @@ app.get("/downloadCSV", function (req, res) {
     });
 });
 
+// app.get("/genDebits", async (req, res) => {
+//   const t = await db.transaction();
+//   let debitDates = [];
+//   dbModel.contract_details
+//     .findAll({}, { transaction: t })
+//     .then((res) => {
+//       res.forEach((contract) => {
+//         switch (contract.installmentDates.toLowerCase()) {
+//           case "weekly":
+//             for (let i = 0; i < contract.noInstallment; i++) {
+//               debitDates.push({
+//                 date: new Date(contract.dateOfirstInstallment).setDate(
+//                   new Date(contract.dateOfirstInstallment).getDate() + 7 * i
+//                 ),
+//                 contractID: contract.contractID,
+//               });
+//             }
+//             break;
+//           case "monthly":
+//             for (let i = 0; i < contract.noInstallment; i++) {
+//               debitDates.push({
+//                 date: new Date(contract.dateOfirstInstallment).setMonth(
+//                   new Date(contract.dateOfirstInstallment).getMonth() + i
+//                 ),
+//                 contractID: contract.contractID,
+//               });
+//             }
+//             break;
+//           default:
+//             debitDates.push({
+//               date: new Date(contract.dateOfirstInstallment),
+//               contractID: contract.contractID,
+//             });
+//             break;
+//         }
+//       });
+//       return dbModel.debit_dates.bulkCreate(debitDates, { transaction: t });
+//     })
+//     .then((res) => {
+//       t.commit();
+//       return "Contract created";
+//     })
+//     .catch((err) => {
+//       t.rollback();
+//       throw error;
+//     });
+// });
+
 const auth = jwt({
   secret: "JWT_SECRET",
   algorithms: ["sha1", "RS256", "HS256"],
@@ -158,7 +206,7 @@ const server = new ApolloServer({
       : req.user
       ? req.user
       : null;
-    return { user, db };
+    return { user, db, dbModel };
   },
 });
 

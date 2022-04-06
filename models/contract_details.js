@@ -15,6 +15,11 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
+    manualContractID: {
+      type: DataTypes.STRING(45),
+      allowNull: true,
+      unique: "manualContractID_UNIQUE"
+    },
     paymentMethod: {
       type: DataTypes.STRING(150),
       allowNull: false
@@ -42,11 +47,6 @@ module.exports = function(sequelize, DataTypes) {
     collectionReason: {
       type: DataTypes.STRING(150),
       allowNull: false
-    },
-    manualContractID: {
-      type: DataTypes.STRING(45),
-      allowNull: true,
-      unique: "manualContractID_UNIQUE"
     }
   }, {
     sequelize,
