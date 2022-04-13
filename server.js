@@ -55,7 +55,7 @@ app.get("/downloadCSV", function (req, res) {
 
       return db.query(
         `
-        SELECT dd.ID, dd.contractID, dd.date, cd.clientFullname, cai.accountNo, cai.bankAccType, cai.biCode, ctd.installmentAmount, ctd.manualContractID, ctd.collectionReason, ctd.tracking
+        SELECT dd.ID, dd.contractID, dd.date, cd.clientFullname, cai.accountNo, cai.bankAccType, cai.biCode, ctd.installmentAmount, ctd.manualContractID, ctd.collectionReason, ctd.tracking, ba.abbreviatedBusinessName
         FROM debit_dates as dd
         left join contract_details as ctd
         on dd.contractID = ctd.contractID
