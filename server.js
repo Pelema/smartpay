@@ -55,18 +55,17 @@ app.get("/downloadCSV", function (req, res) {
 
       return db.query(
         `
-        select clientFullname, accountNo, manualContractID, bankAccType, biCode, installmentAmount, contractID, tracking, abbreviatedBusinessName, collectionReason
-        from client_details AS cn
-        inner join
-        client_account_info AS cai
-        on cn.client_id = cai.clientID
-        inner join
-        contract_details AS cd
-        on cai.clientID = cd.clientID
-        inner join
-        business_account AS ba
-        on ba.businessID = cn.businessID
-        where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment='${req.query.date}'`,
+        SELECT dd.ID, dd.contractID, dd.date, cd.clientFullname, cai.accountNo, cai.bankAccType, cai.biCode, ctd.installmentAmount, ctd.manualContractID, ctd.collectionReason, ctd.tracking
+        FROM debit_dates as dd
+        left join contract_details as ctd
+        on dd.contractID = ctd.contractID
+        left join client_account_info as cai
+        on ctd.clientID = cai.clientID
+        left join client_details as cd
+        on cai.clientID = cd.client_id
+        left join business_account as ba
+        on ba.businessID = cd.businessID
+        where ba.businessID = ${decodedToken.businessID} and dd.date ='${req.query.date}'`,
         { type: QueryTypes.SELECT }
       );
     })
@@ -82,7 +81,7 @@ app.get("/downloadCSV", function (req, res) {
         date.getFullYear() +
         ", '";
       var contentBody =
-        "\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE, MANUAL CONTRACT ID,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n";
+        "\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n";
 
       var clientSum = 0;
       var bankAccType = "";
@@ -105,8 +104,6 @@ app.get("/downloadCSV", function (req, res) {
           row.biCode +
           "," +
           row.installmentAmount +
-          "," +
-          row.contractID +
           "," +
           row.manualContractID +
           "," +
