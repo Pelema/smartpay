@@ -9,7 +9,7 @@ var _client_account_info = require("./client_account_info");
 var _client_contact_details = require("./client_contact_details");
 var _client_details = require("./client_details");
 var _contract_details = require("./contract_details");
-var _contract_detailsOLD = require("./contract_detailsOLD");
+var _debit_dates = require("./debit_dates");
 var _roles = require("./roles");
 var _users = require("./users");
 
@@ -27,7 +27,7 @@ function initModels(sequelize) {
   var client_contact_details = _client_contact_details(sequelize, DataTypes);
   var client_details = _client_details(sequelize, DataTypes);
   var contract_details = _contract_details(sequelize, DataTypes);
-  var contract_detailsOLD = _contract_detailsOLD(sequelize, DataTypes);
+  var debit_dates = _debit_dates(sequelize, DataTypes);
   var roles = _roles(sequelize, DataTypes);
   var users = _users(sequelize, DataTypes);
 
@@ -97,6 +97,14 @@ function initModels(sequelize) {
     as: "contract_details",
     foreignKey: "clientID",
   });
+  debit_dates.belongsTo(contract_details, {
+    as: "contract",
+    foreignKey: "contractID",
+  });
+  contract_details.hasMany(debit_dates, {
+    as: "debit_dates",
+    foreignKey: "contractID",
+  });
   users.belongsTo(roles, { as: "role", foreignKey: "roleID" });
   roles.hasMany(users, { as: "users", foreignKey: "roleID" });
   admins.belongsTo(users, { as: "user", foreignKey: "userID" });
@@ -118,7 +126,7 @@ function initModels(sequelize) {
     client_contact_details,
     client_details,
     contract_details,
-    contract_detailsOLD,
+    debit_dates,
     roles,
     users,
   };
