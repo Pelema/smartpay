@@ -55,18 +55,17 @@ app.get("/downloadCSV", function (req, res) {
 
       return db.query(
         `
-        select clientFullname, accountNo, manualContractID, bankAccType, biCode, installmentAmount, contractID, tracking, abbreviatedBusinessName, collectionReason
-        from client_details AS cn
-        inner join
-        client_account_info AS cai
-        on cn.client_id = cai.clientID
-        inner join
-        contract_details AS cd
-        on cai.clientID = cd.clientID
-        inner join
-        business_account AS ba
-        on ba.businessID = cn.businessID
-        where ba.businessID = ${decodedToken.businessID} and dateOfirstInstallment='${req.query.date}'`,
+        SELECT dd.ID, dd.contractID, dd.date, cd.clientFullname, cai.accountNo, cai.bankAccType, cai.biCode, ctd.installmentAmount, ctd.manualContractID, ctd.collectionReason, ctd.tracking, ba.abbreviatedBusinessName
+        FROM debit_dates as dd
+        left join contract_details as ctd
+        on dd.contractID = ctd.contractID
+        left join client_account_info as cai
+        on ctd.clientID = cai.clientID
+        left join client_details as cd
+        on cai.clientID = cd.client_id
+        left join business_account as ba
+        on ba.businessID = cd.businessID
+        where ba.businessID = ${decodedToken.businessID} and dd.date ='${req.query.date}'`,
         { type: QueryTypes.SELECT }
       );
     })
@@ -82,7 +81,7 @@ app.get("/downloadCSV", function (req, res) {
         date.getFullYear() +
         ", '";
       var contentBody =
-        "\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE, MANUAL CONTRACT ID,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n";
+        "\r\n RECIPIENT NAME,RECIPIENT ACCOUNT,RECIPIENT ACCOUNT TYPE,BIC CODE,AMOUNT,CONTRACT REFERENCE,TRACKING,ABBREVIATED NAME,REASON FOR COLLECTION\r\n";
 
       var clientSum = 0;
       var bankAccType = "";
@@ -105,8 +104,6 @@ app.get("/downloadCSV", function (req, res) {
           row.biCode +
           "," +
           row.installmentAmount +
-          "," +
-          row.contractID +
           "," +
           row.manualContractID +
           "," +
@@ -138,6 +135,54 @@ app.get("/downloadCSV", function (req, res) {
     });
 });
 
+// app.get("/genDebits", async (req, res) => {
+//   const t = await db.transaction();
+//   let debitDates = [];
+//   dbModel.contract_details
+//     .findAll({}, { transaction: t })
+//     .then((res) => {
+//       res.forEach((contract) => {
+//         switch (contract.installmentDates.toLowerCase()) {
+//           case "weekly":
+//             for (let i = 0; i < contract.noInstallment; i++) {
+//               debitDates.push({
+//                 date: new Date(contract.dateOfirstInstallment).setDate(
+//                   new Date(contract.dateOfirstInstallment).getDate() + 7 * i
+//                 ),
+//                 contractID: contract.contractID,
+//               });
+//             }
+//             break;
+//           case "monthly":
+//             for (let i = 0; i < contract.noInstallment; i++) {
+//               debitDates.push({
+//                 date: new Date(contract.dateOfirstInstallment).setMonth(
+//                   new Date(contract.dateOfirstInstallment).getMonth() + i
+//                 ),
+//                 contractID: contract.contractID,
+//               });
+//             }
+//             break;
+//           default:
+//             debitDates.push({
+//               date: new Date(contract.dateOfirstInstallment),
+//               contractID: contract.contractID,
+//             });
+//             break;
+//         }
+//       });
+//       return dbModel.debit_dates.bulkCreate(debitDates, { transaction: t });
+//     })
+//     .then((res) => {
+//       t.commit();
+//       return "Contract created";
+//     })
+//     .catch((err) => {
+//       t.rollback();
+//       throw error;
+//     });
+// });
+
 const auth = jwt({
   secret: "JWT_SECRET",
   algorithms: ["sha1", "RS256", "HS256"],
@@ -158,7 +203,7 @@ const server = new ApolloServer({
       : req.user
       ? req.user
       : null;
-    return { user, db };
+    return { user, db, dbModel };
   },
 });
 
