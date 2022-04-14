@@ -92,12 +92,18 @@ const resolvers = {
     getTransactions(_, { start, end }, { db, user }) {
       return db
         .query(
-          `SELECT * FROM client_details AS cld
-                inner join
-                contract_details AS cd
-                on cld.client_id = cd.clientID
-                WHERE (dateOfirstInstallment BETWEEN ? AND ?) 
-                and businessID = ?`,
+          `SELECT dd.date, ctd.clientID, cd.clientFullname, ctd.paymentMethod, ctd.noInstallment, ctd.installmentAmount, ctd.dateOfirstInstallment, ctd.tracking, ctd.installmentDates, ctd.collectionReason, ctd.contractID
+            FROM debit_dates as dd
+            left join contract_details as ctd
+            on dd.contractID = ctd.contractID
+            left join client_account_info as cai
+            on ctd.clientID = cai.clientID
+            left join client_details as cd
+            on cai.clientID = cd.client_id
+            left join business_account as ba
+            on ba.businessID = cd.businessID
+            where (dd.date BETWEEN ? AND ?)
+            and ba.businessID = ?`,
           {
             replacements: [start, end, user.businessID],
             type: QueryTypes.SELECT,
